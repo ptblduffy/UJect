@@ -1,0 +1,8 @@
+{
+    "name": "com.ebm.uject",
+    "description": "Simple Unity Dependency Injection Library",
+    "version": "0.0.1",
+    "unity": "",
+    "displayName": "UJect",
+    "testables": ["UJect.Tests"]
+}
