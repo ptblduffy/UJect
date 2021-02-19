@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Windows.Speech;
 using static UJect.RuntimeAssert;
 
 namespace UJect
@@ -30,11 +28,22 @@ namespace UJect
             this.parentContainer = parentContainer;
             this.containerName   = containerName;
             Phase                = DiPhase.Bind;
+            BindInstance(this);
+        }
+
+        public DiContainer CreateChildContainer(string childContainerName = null)
+        {
+            return new DiContainer(this, childContainerName);
+        }
+
+        public override string ToString()
+        {
+            return $"{nameof(DiContainer)} \"{this.containerName}\"";
         }
 
         #region Public Binding Interface
 
-        public IDiBinder<TInterface> Bind<TInterface>() where TInterface : class
+        public IDiBinder<TInterface> Bind<TInterface>()
         {
             AssertIsFalse(isDisposed, "You should not try to bind to a disposed container!");
 
@@ -53,7 +62,9 @@ namespace UJect
             var key = new InjectionKey(typeof(TType), customId);
             if (dependencyResolvers.TryGetValue(key, out var resolver))
             {
+                Debug.Log($"---- Unbinding {key.InjectedResourceType.Name}");
                 dependencyResolvers.Remove(key);
+                resolvedInstances.Remove(key);
                 resolver.Dispose();
                 return true;
             }
@@ -170,16 +181,31 @@ namespace UJect
             if (resolvedInstances.TryGetValue(key, out var resolvedDependency))
             {
                 dependency = (TType)resolvedDependency;
+                AssertIsFalse(IsNullOrDestroyed(dependency), "Null dependency detected. It should have been unregistered!");
                 return true;
             }
 
             if (parentContainer != null && parentContainer.TryGetDependencyInternal<TType>(key, out var parentDependency))
             {
                 dependency = parentDependency;
+                AssertIsFalse(IsNullOrDestroyed(dependency), "Null dependency detected. It should have been unregistered!");
                 return true;
             }
 
             dependency = default;
+            return false;
+        }
+        
+        private static bool IsNullOrDestroyed<TType>(TType obj)
+        {
+            if (obj == null)
+            {
+                return true;
+            }
+            if (obj is UnityEngine.Object uobj)
+            {
+                return uobj == null;
+            }
             return false;
         }
 
@@ -191,12 +217,14 @@ namespace UJect
             if (resolvedInstances.TryGetValue(key, out var resolvedDependency))
             {
                 dependency = resolvedDependency;
+                AssertIsFalse(IsNullOrDestroyed(dependency), "Null dependency detected. It should have been unregistered!");
                 return true;
             }
 
             if (parentContainer != null && parentContainer.TryGetDependencyForInjectionInternal(key, out var parentDependency))
             {
                 dependency = parentDependency;
+                AssertIsFalse(IsNullOrDestroyed(dependency), "Null dependency detected. It should have been unregistered!");
                 return true;
             }
             
