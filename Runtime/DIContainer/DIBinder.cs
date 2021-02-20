@@ -1,4 +1,5 @@
 ﻿using System;
+using Object = UnityEngine.Object;
 
 namespace UJect
 {
@@ -9,6 +10,8 @@ namespace UJect
         DiContainer ToNewInstance<TImpl>() where TImpl : TInterface;
         DiContainer ToFactoryMethod<TImpl>(Func<TImpl> factoryMethod) where TImpl : TInterface;
         DiContainer ToFactory<TImpl>(IInstanceFactory<TImpl> factoryImpl) where TImpl : TInterface;
+
+        DiContainer ToResource<TImpl>(string resourcePath) where TImpl : UnityEngine.Object, TInterface;
     }
 
     internal class DiBinder<TInterface> : IDiBinder<TInterface>
@@ -30,7 +33,7 @@ namespace UJect
 
         public DiContainer ToInstance<TImpl>(TImpl instance) where TImpl : TInterface
         {
-            var resolver = new InstanceResolver<TImpl>(instance, dependencies);
+            var resolver = new InstanceResolver<TImpl>(instance);
             dependencies.InstallBindingInternal<TInterface, TImpl>(customId, resolver);
             return dependencies;
         }
@@ -44,14 +47,21 @@ namespace UJect
 
         public DiContainer ToFactoryMethod<TImpl>(Func<TImpl> factoryMethod) where TImpl : TInterface
         {
-            var resolver = new FunctionInstanceResolver<TImpl>(factoryMethod, dependencies);
+            var resolver = new FunctionInstanceResolver<TImpl>(factoryMethod);
             dependencies.InstallBindingInternal<TInterface, TImpl>(customId, resolver);
             return dependencies;
         }
 
         public DiContainer ToFactory<TImpl>(IInstanceFactory<TImpl> factoryImpl) where TImpl : TInterface
         {
-            var resolver = new ExternalFactoryResolver<TImpl>(factoryImpl, dependencies);
+            var resolver = new ExternalFactoryResolver<TImpl>(factoryImpl);
+            dependencies.InstallBindingInternal<TInterface, TImpl>(customId, resolver);
+            return dependencies;
+        }
+
+        public DiContainer ToResource<TImpl>(string resourcePath) where TImpl : UnityEngine.Object, TInterface
+        {
+            var resolver = new ResourceInstanceResolver<TImpl>(resourcePath);
             dependencies.InstallBindingInternal<TInterface, TImpl>(customId, resolver);
             return dependencies;
         }

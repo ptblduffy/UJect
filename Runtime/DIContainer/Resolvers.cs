@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Linq;
+using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace UJect
 {
@@ -17,7 +19,7 @@ namespace UJect
     {
         private readonly TImpl       instance;
 
-        public InstanceResolver(TImpl instance, DiContainer diContainer)
+        public InstanceResolver(TImpl instance)
         {
             this.instance    = instance;
         }
@@ -62,7 +64,7 @@ namespace UJect
     {
         private readonly Func<TImpl> resolve;
 
-        public FunctionInstanceResolver(Func<TImpl> resolve, DiContainer diContainer)
+        public FunctionInstanceResolver(Func<TImpl> resolve)
         {
             this.resolve     = resolve;
         }
@@ -81,7 +83,7 @@ namespace UJect
     {
         private readonly IInstanceFactory<TImpl> factory;
 
-        public ExternalFactoryResolver(IInstanceFactory<TImpl> factory, DiContainer diContainer)
+        public ExternalFactoryResolver(IInstanceFactory<TImpl> factory)
         {
             this.factory     = factory;
         }
@@ -97,6 +99,28 @@ namespace UJect
         public void Dispose()
         {
             factory.Dispose();
+        }
+    }
+    
+    internal class ResourceInstanceResolver<TImpl> : IResolver<TImpl> where TImpl : Object
+    {
+        private readonly string resourcePath;
+
+        public ResourceInstanceResolver(string resourcePath)
+        {
+            this.resourcePath = resourcePath;
+        }
+
+        public TImpl GetInstance()
+        {
+            var newInstance = Resources.Load<TImpl>(resourcePath);
+            return newInstance;
+        }
+
+        object IResolver.Resolve() => GetInstance();
+
+        public void Dispose()
+        {
         }
     }
 }
