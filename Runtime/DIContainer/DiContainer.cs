@@ -12,8 +12,8 @@ namespace UJect
         private readonly        string                              containerName;
         private readonly        Dictionary<InjectionKey, IResolver> dependencyResolvers = new Dictionary<InjectionKey, IResolver>();
         private readonly DependencyTree dependencyTree = new DependencyTree();
-        
-        public enum DiPhase : byte
+
+        private enum DiPhase : byte
         {
             Bind     = 0,
             Resolved = 1,
@@ -53,7 +53,7 @@ namespace UJect
         public DiContainer BindInstance<TClass>(TClass instance, string customId = null) where TClass : class
         {
             AssertIsFalse(isDisposed, "You should not try to bind to a disposed container!");
-            InstallBindingInternal<TClass, TClass>(customId, new InstanceResolver<TClass>(instance, this));
+            InstallBindingInternal<TClass, TClass>(customId, new InstanceResolver<TClass>(instance));
             return this;
         }
 
