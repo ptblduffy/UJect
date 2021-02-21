@@ -82,14 +82,17 @@ namespace UJect
     internal class ExternalFactoryResolver<TImpl> : IResolver<TImpl>
     {
         private readonly IInstanceFactory<TImpl> factory;
+        private readonly DiContainer             diContainer;
 
-        public ExternalFactoryResolver(IInstanceFactory<TImpl> factory)
+        public ExternalFactoryResolver(IInstanceFactory<TImpl> factory, DiContainer diContainer)
         {
             this.factory     = factory;
+            this.diContainer = diContainer;
         }
 
         public TImpl GetInstance()
         {
+            diContainer.InjectInto(factory);
             var newInstance = factory.CreateInstance();
             return newInstance;
         }

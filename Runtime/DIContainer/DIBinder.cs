@@ -54,8 +54,7 @@ namespace UJect
 
         public DiContainer ToFactory<TImpl>(IInstanceFactory<TImpl> factoryImpl) where TImpl : TInterface
         {
-            var resolver = new ExternalFactoryResolver<TImpl>(factoryImpl);
-            dependencies.InstallBindingInternal<TInterface, TImpl>(customId, resolver);
+            dependencies.InstallFactoryBinding<TInterface, TImpl>(customId, factoryImpl);
             return dependencies;
         }
 

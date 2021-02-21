@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using UnityEngine;
 
 namespace UJect
 {
@@ -29,6 +30,13 @@ namespace UJect
             var fields = referencedType.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
                 .Where(fi => fi.IsDefined(typeof(InjectAttribute), true));
 
+            var isFactory = this.GetType().Name.Contains("Factory");
+
+            if (isFactory)
+            {
+                Debug.Log("FIELDS" + fields);
+            }
+            
             foreach (var fieldInfo in fields)
             {
                 var customId = fieldInfo.GetCustomAttribute<InjectAttribute>(true).CustomId;
@@ -73,6 +81,7 @@ namespace UJect
             foreach (var (injectedField, customId) in injectableFields)
             {
                 var injectionKey = new DiContainer.InjectionKey(injectedField.FieldType, customId);
+                Debug.Log($"Injecting {injectionKey} into {obj}");
                 if (diContainer.TryGetDependencyForInjectionInternal(injectionKey, out var dependency))
                 {
                     injectedField.SetValue(obj, dependency);
