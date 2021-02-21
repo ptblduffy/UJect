@@ -9,18 +9,12 @@ namespace UJect
             public readonly Type   InjectedResourceType;
             private readonly string injectedResourceName;
 
-            public InjectionKey(Type injectedResourceType, string injectedResourceName)
+            public InjectionKey(Type injectedResourceType, string injectedResourceName = null)
             {
                 this.InjectedResourceType = injectedResourceType;
                 this.injectedResourceName = injectedResourceName;
             }
             
-            public InjectionKey(Type injectedResourceType)
-            {
-                this.InjectedResourceType = injectedResourceType;
-                this.injectedResourceName = null;
-            }
-
             public bool Equals(InjectionKey other)
             {
                 return InjectedResourceType == other.InjectedResourceType && injectedResourceName == other.injectedResourceName;
@@ -41,7 +35,7 @@ namespace UJect
 
             public override string ToString()
             {
-                return $"{injectedResourceName}:{InjectedResourceType}";
+                return $"({InjectedResourceType}{(injectedResourceName != null ? $": \"{injectedResourceName}\"" : "")})";
             }
         }
     }

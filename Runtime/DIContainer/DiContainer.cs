@@ -53,6 +53,7 @@ namespace UJect
         public DiContainer BindInstance<TClass>(TClass instance, string customId = null) where TClass : class
         {
             AssertIsFalse(isDisposed, "You should not try to bind to a disposed container!");
+            AssertIsFalse(typeof(TClass).IsInterface, "You should not try to bind an instance of an interface!");
             InstallBindingInternal<TClass, TClass>(customId, new InstanceResolver<TClass>(instance));
             return this;
         }
@@ -62,7 +63,7 @@ namespace UJect
             var key = new InjectionKey(typeof(TType), customId);
             if (dependencyResolvers.TryGetValue(key, out var resolver))
             {
-                Debug.Log($"---- Unbinding {key.InjectedResourceType.Name}");
+                Debug.Log($"---- Unbinding {key}");
                 dependencyResolvers.Remove(key);
                 resolvedInstances.Remove(key);
                 resolver.Dispose();
@@ -78,23 +79,33 @@ namespace UJect
 
         internal void InstallBindingInternal<TFrom, TTo>(string customId, IResolver<TTo> dependencyResolver) where TTo : TFrom
         {
-            
             var fromKey = new InjectionKey(typeof(TFrom), customId);
             var toKey = new InjectionKey(typeof(TTo));
-            Debug.Log($"---- Binding {fromKey.InjectedResourceType.Name} => {toKey.InjectedResourceType.Name}");
-            dependencyTree.AddDependency(fromKey, toKey, true);
-            var injector = InjectorCache.GetInjector(typeof(TTo));
-            foreach (var dependsOn in injector.DependsOn)
-            {
-                dependencyTree.AddDependency(toKey, dependsOn, false);
-            }
+            InstallBindingInternal(fromKey, toKey, dependencyResolver);
+        }
+        
+        internal void InstallFactoryBinding<TFrom, TTo>(string customId, IInstanceFactory<TTo> factory)
+        {
+            var fromKey = new InjectionKey(typeof(TFrom), customId);
+            var toKey = new InjectionKey(typeof(TTo));
             
-            if(dependencyTree.HasCycle(out var onDependency))
-            {
-                throw new InvalidOperationException($"Adding dependency binding for {fromKey} to {toKey} resulted in a dependency cycle!\n{onDependency}");
-            }
+            var factoryIntKey = new InjectionKey(typeof(IInstanceFactory<TTo>), customId);
+            var factoryKey = new InjectionKey(factory.GetType());
             
-            if(dependencyResolvers.ContainsKey(fromKey))
+            //Bind the interface to the concrete implementation
+            InstallBindingInternal(fromKey, toKey, new ExternalFactoryResolver<TTo>(factory, this));
+            //Bind the factory interface to the factory implementation
+            InstallBindingInternal(factoryIntKey, factoryKey, new InstanceResolver<IInstanceFactory<TTo>>(factory));
+            //Add a dependency on the factory interface to the interface. This will ensure the factory's dependencies are ready before the factory is used
+            AddDependencies(fromKey, factoryIntKey);
+        }
+
+        internal void InstallBindingInternal(InjectionKey fromKey, InjectionKey toKey, IResolver dependencyResolver)
+        {
+            Debug.Log($"---- Binding {fromKey} => {toKey}");
+            AddDependencies(fromKey, toKey);
+
+            if (dependencyResolvers.ContainsKey(fromKey))
             {
                 throw new ArgumentException($"Existing binding found for binding key {fromKey}. Another cannot be added!");
             }
@@ -105,7 +116,24 @@ namespace UJect
 
             if (Phase > DiPhase.Bind)
             {
-                Resolve(fromKey, dependencyResolver);
+                ResolveInstance(fromKey, dependencyResolver);
+            }
+        }
+        
+        
+        private void AddDependencies(InjectionKey fromKey, InjectionKey toKey)
+        {
+            dependencyTree.AddDependency(fromKey, toKey, true);
+            
+            var injector = InjectorCache.GetInjector(toKey.InjectedResourceType);
+            foreach (var dependsOn in injector.DependsOn)
+            {
+                dependencyTree.AddDependency(toKey, dependsOn, false);
+            }
+            
+            if(dependencyTree.HasCycle(out var onDependency))
+            {
+                throw new InvalidOperationException($"Adding dependency binding for {fromKey} to {toKey} resulted in a dependency cycle!\n{onDependency}");
             }
         }
 
@@ -128,20 +156,33 @@ namespace UJect
                     throw new InvalidOperationException("Cycle detected in dependency tree!");
                 }
 
+                var sorted = dependencyTree.Sorted();
+
+
+                foreach (var injectionKey in sorted)
+                {
+                    var deps = dependencyTree.GetDependenciesFor(injectionKey);
+                    
+                    Debug.Log(injectionKey + "\n\t" + string.Join("\n\t", deps.Select(r=>r.ToString())));
+                    
+                }
+                
+                Debug.Log(string.Join(", ", dependencyTree.Sorted().Select(r=>r.ToString())));
+
                 foreach (var injectionKey in dependencyTree.Sorted())
                 {
                     if (dependencyResolvers.TryGetValue(injectionKey, out var resolver))
                     {
-                        Resolve(injectionKey, resolver);
+                        ResolveInstance(injectionKey, resolver);
                     }
                 }
             }
         }
 
-        private void Resolve(InjectionKey injectionKey, IResolver resolver)
+        private void ResolveInstance(InjectionKey injectionKey, IResolver resolver)
         {
-            var instance = resolver.Resolve();
             Debug.Log($"Resolving instance of {injectionKey}");
+            var instance = resolver.Resolve();
             InjectInto(instance);
             resolvedInstances.Add(injectionKey, instance);
         }
