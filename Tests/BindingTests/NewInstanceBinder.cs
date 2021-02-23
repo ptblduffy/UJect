@@ -12,9 +12,9 @@ namespace UJect.Tests
             var container = new DiContainer();
             container.Bind<IInterface1>().ToNewInstance<Impl1>();
             container.Bind<IInterface2>().ToInstance(new Impl2());
-            container.Resolve();
+            container.TryResolveAll();
 
-            var fetchedImpl1 = container.GetDependency<IInterface1>();
+            var fetchedImpl1 = container.Get<IInterface1>();
             Assert.NotNull(fetchedImpl1.Impl2);
         }
 

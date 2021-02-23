@@ -13,7 +13,7 @@ namespace UJect.Tests
             var container = new DiContainer();
             container.Bind<IInterface1>().ToInstance(new Impl1());
             container.Bind<IInterface2>().ToInstance(new Impl2());
-            container.Resolve();
+            container.TryResolveAll();
         }
         
         private interface IInterface1

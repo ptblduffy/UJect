@@ -20,9 +20,9 @@ namespace UJect.Tests
             container.Bind<Impl1>().ToInstance(impl1);
             container.Bind<IInterface2>().WithId("Frodo").ToInstance(frodoInstance);
             container.Bind<IInterface2>().WithId("Sam").ToInstance(samInstance);
-            container.Resolve();
+            container.TryResolveAll();
 
-            var fetchedImpl1 = container.GetDependency<Impl1>();
+            var fetchedImpl1 = container.Get<Impl1>();
             Assert.AreEqual(frodoInstance, fetchedImpl1.Impl2Frodo);
             Assert.AreEqual(samInstance, fetchedImpl1.Impl2Sam);
         }
