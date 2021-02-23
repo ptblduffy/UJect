@@ -37,11 +37,13 @@ namespace UJect
             if (!source.Equals(on))
             {
                 GetOrCreateNode(source).AddDependsOn(GetOrCreateNode(on));
+                cachedSortedList = null;
             }
 
             if (isRoot)
             {
                 roots.Add(source);
+                cachedSortedList = null;
             }
         }
 
@@ -119,10 +121,17 @@ namespace UJect
             return false;
         }
 
+
+        private List<DiContainer.InjectionKey> cachedSortedList = null;
         internal IEnumerable<DiContainer.InjectionKey> Sorted()
         {
-            return TopologicSort(roots.Select(GetOrCreateNode).ToArray())
-                .Select(n => n.InjectionKey);
+            if (cachedSortedList == null)
+            {
+                cachedSortedList = TopologicSort(roots.Select(GetOrCreateNode).ToArray())
+                    .Select(n => n.InjectionKey)
+                    .ToList();
+            }
+            return cachedSortedList;
         }
 
 

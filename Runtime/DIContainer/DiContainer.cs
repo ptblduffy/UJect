@@ -19,7 +19,18 @@ namespace UJect
             Resolved = 1,
         }
 
-        private DiPhase Phase { get; set; }
+        private DiPhase Phase
+        {
+            get => phase;
+            set
+            {
+                if (phase != value)
+                {
+                    Debug.Log($"DI moving to phase {value}");
+                    phase = value;
+                }
+            }
+        }
 
         private bool isDisposed = false;
 
@@ -114,10 +125,7 @@ namespace UJect
                 dependencyResolvers.Add(fromKey, dependencyResolver);
             }
 
-            if (Phase > DiPhase.Bind)
-            {
-                ResolveInstance(fromKey, dependencyResolver);
-            }
+            Phase = DiPhase.Bind;
         }
         
         
@@ -142,35 +150,30 @@ namespace UJect
         #region Resolvers
 
         private readonly Dictionary<InjectionKey, object> resolvedInstances = new Dictionary<InjectionKey, object>();
+        private          DiPhase                          phase;
 
-        public void Resolve()
+        /// <summary>
+        /// Resolve all dependencies, if required. You shouldn't have to call this, it should happen automatically when attempting to retrieve a dependency.
+        /// </summary>
+        /// <exception cref="InvalidOperationException"></exception>
+        public void TryResolveAll()
         {
-
             if (Phase < DiPhase.Resolved)
             {
                 Phase = DiPhase.Resolved;
-                resolvedInstances.Clear();
-
-                if (dependencyTree.HasCycle(out var dep))
+                if (dependencyTree.HasCycle(out _))
                 {
                     throw new InvalidOperationException("Cycle detected in dependency tree!");
                 }
 
-                var sorted = dependencyTree.Sorted();
-
-
-                foreach (var injectionKey in sorted)
-                {
-                    var deps = dependencyTree.GetDependenciesFor(injectionKey);
-                    
-                    Debug.Log(injectionKey + "\n\t" + string.Join("\n\t", deps.Select(r=>r.ToString())));
-                    
-                }
-                
-                Debug.Log(string.Join(", ", dependencyTree.Sorted().Select(r=>r.ToString())));
-
                 foreach (var injectionKey in dependencyTree.Sorted())
                 {
+                    if (resolvedInstances.ContainsKey(injectionKey))
+                    {
+                        //Already resolved. Skip
+                        continue;
+                    }
+
                     if (dependencyResolvers.TryGetValue(injectionKey, out var resolver))
                     {
                         ResolveInstance(injectionKey, resolver);
@@ -179,9 +182,13 @@ namespace UJect
             }
         }
 
+        /// <summary>
+        /// Resolve a specific dependency instance. The instance will have its dependencies injected
+        /// </summary>
+        /// <param name="injectionKey"></param>
+        /// <param name="resolver"></param>
         private void ResolveInstance(InjectionKey injectionKey, IResolver resolver)
         {
-            Debug.Log($"Resolving instance of {injectionKey}");
             var instance = resolver.Resolve();
             InjectInto(instance);
             resolvedInstances.Add(injectionKey, instance);
@@ -189,8 +196,14 @@ namespace UJect
 
         #endregion
 
-
-        public TInterface GetDependency<TInterface>(string customId = null) where TInterface : class
+        /// <summary>
+        /// Get a bound dependency. Throws an exception if the dependency isn't found.
+        /// </summary>
+        /// <param name="customId"></param>
+        /// <typeparam name="TInterface"></typeparam>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        public TInterface Get<TInterface>(string customId = null) where TInterface : class
         {
             AssertIsFalse(isDisposed, "You should not try to retrieve bindings from a disposed container!");
 
@@ -203,21 +216,33 @@ namespace UJect
             throw new ArgumentException($"No dependency of type {typeof(TInterface)} found{(customId != null ? $" with customId \"{customId}\"" : "")}");
         }
 
-        public bool TryGetDependency<TInterface>(out TInterface dependency) where TInterface : class
+        /// <summary>
+        /// Try to get a bound dependency based on the given interface
+        /// </summary>
+        /// <typeparam name="TInterface"></typeparam>
+        /// <param name="dependency">The returned dependency</param>
+        /// <returns>True if dependency is bound, false otherwise</returns>
+        public bool TryGet<TInterface>(out TInterface dependency) where TInterface : class
         {
-            return TryGetDependency(null, out dependency);
+            return TryGet(null, out dependency);
         }
 
-        public bool TryGetDependency<TType>(string customId, out TType dependency)
+        /// <summary>
+        /// Try to get a bound dependency based on the given key
+        /// </summary>
+        /// <param name="customId"></param>
+        /// <param name="dependency">The returned dependency</param>
+        /// <returns>True if dependency is bound, false otherwise</returns>
+        public bool TryGet<TType>(string customId, out TType dependency)
         {
             var key = new InjectionKey(typeof(TType), customId);
             return TryGetDependencyInternal(key, out dependency);
         }
-
+        
         private bool TryGetDependencyInternal<TType>(InjectionKey key, out TType dependency)
         {
             AssertIsFalse(isDisposed, "You should not try to retrieve bindings from a disposed container!");
-            Resolve();
+            TryResolveAll();
 
             if (resolvedInstances.TryGetValue(key, out var resolvedDependency))
             {
@@ -236,24 +261,17 @@ namespace UJect
             dependency = default;
             return false;
         }
-        
-        private static bool IsNullOrDestroyed<TType>(TType obj)
-        {
-            if (obj == null)
-            {
-                return true;
-            }
-            if (obj is UnityEngine.Object uobj)
-            {
-                return uobj == null;
-            }
-            return false;
-        }
 
+        /// <summary>
+        /// Untyped method for getting a dependency to inject into another class
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="dependency"></param>
+        /// <returns>True if dependency is bound, false otherwise</returns>
         internal bool TryGetDependencyForInjectionInternal(InjectionKey key, out object dependency)
         {
             AssertIsFalse(isDisposed, "You should not try to retrieve bindings from a disposed container!");
-            Resolve();
+            TryResolveAll();
 
             if (resolvedInstances.TryGetValue(key, out var resolvedDependency))
             {
@@ -274,6 +292,24 @@ namespace UJect
             dependency = default;
             return false;
         }
+
+
+        private static bool IsNullOrDestroyed<TType>(TType obj)
+        {
+            if (obj == null)
+            {
+                return true;
+            }
+
+            //If this object is a Unity Object, we want to run an actual lifetime check
+            if (obj is UnityEngine.Object uobj)
+            {
+                return uobj == null;
+            }
+
+            return false;
+        }
+
 
         public void InjectInto(object obj)
         {
