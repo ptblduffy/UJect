@@ -1,9 +1,11 @@
 ﻿using System;
+using UJect.Factories;
+using UJect.Resolvers;
 using Object = UnityEngine.Object;
 
 namespace UJect
 {
-    public interface IDiBinder<TInterface>
+    public interface IDiBinder<in TInterface>
     {
         IDiBinder<TInterface> WithId(string id);
         DiContainer ToInstance<TImpl>(TImpl instance) where TImpl : TInterface;
@@ -11,14 +13,14 @@ namespace UJect
         DiContainer ToFactoryMethod<TImpl>(Func<TImpl> factoryMethod) where TImpl : TInterface;
         DiContainer ToFactory<TImpl>(IInstanceFactory<TImpl> factoryImpl) where TImpl : TInterface;
 
-        DiContainer ToResource<TImpl>(string resourcePath) where TImpl : UnityEngine.Object, TInterface;
+        DiContainer ToResource<TImpl>(string resourcePath) where TImpl : Object, TInterface;
     }
 
     internal class DiBinder<TInterface> : IDiBinder<TInterface>
     {
         private readonly DiContainer dependencies;
 
-        private string customId = null;
+        private string customId;
 
         public DiBinder(DiContainer dependencies)
         {
@@ -27,7 +29,7 @@ namespace UJect
 
         public IDiBinder<TInterface> WithId(string id)
         {
-            this.customId = id;
+            customId = id;
             return this;
         }
 
@@ -58,10 +60,16 @@ namespace UJect
             return dependencies;
         }
 
-        public DiContainer ToResource<TImpl>(string resourcePath) where TImpl : UnityEngine.Object, TInterface
+        public DiContainer ToResource<TImpl>(string resourcePath) where TImpl : Object, TInterface
         {
             var resolver = new ResourceInstanceResolver<TImpl>(resourcePath);
             dependencies.InstallBindingInternal<TInterface, TImpl>(customId, resolver);
+            return dependencies;
+        }
+
+        public DiContainer ToCustomResolver<TImpl>(IResolver<TImpl> customResolver) where TImpl : TInterface
+        {
+            dependencies.InstallBindingInternal<TInterface, TImpl>(customId, customResolver);
             return dependencies;
         }
     }
