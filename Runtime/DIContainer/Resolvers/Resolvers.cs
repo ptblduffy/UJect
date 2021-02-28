@@ -6,21 +6,7 @@ using Object = UnityEngine.Object;
 
 namespace UJect.Resolvers
 {
-    public interface IResolver
-    {
-        object Resolve();
-    }
 
-    public interface IResolver<TImpl> : IResolver
-    {
-        TImpl ResolveTypedInstance();
-    }
-
-    public abstract class ResolverBase<TImpl> : IResolver<TImpl>
-    {
-        public abstract TImpl ResolveTypedInstance();
-        object IResolver.Resolve() => ResolveTypedInstance();
-    }
 
     /// <summary>
     /// Simplest resolver. Always returns the same provided instance of TImpl
