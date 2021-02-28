@@ -6,8 +6,6 @@ using Object = UnityEngine.Object;
 
 namespace UJect.Resolvers
 {
-
-
     /// <summary>
     /// Simplest resolver. Always returns the same provided instance of TImpl
     /// </summary>

@@ -1,10 +1,9 @@
 ﻿namespace UJect.Resolvers
 {
-    public interface IResolver
-    {
-        object Resolve();
-    }
-    
+    /// <summary>
+    /// Simple abstract class to extend for custom resolver classes.
+    /// </summary>
+    /// <typeparam name="TImpl"></typeparam>
     public abstract class ResolverBase<TImpl> : IResolver<TImpl>
     {
         public abstract TImpl ResolveTypedInstance();
