@@ -1,6 +1,7 @@
 ﻿using System;
+using Object = UnityEngine.Object;
 
-namespace UJect
+namespace UJect.Assertions
 {
     public static class RuntimeAssert
     {
@@ -11,7 +12,7 @@ namespace UJect
                 throw new InvalidOperationException(message);
             }
         }
-        
+
         public static void AssertIsFalse(bool condition, string message)
         {
             if (condition)
@@ -27,7 +28,7 @@ namespace UJect
                 throw new InvalidOperationException(message);
             }
 
-            if (obj is UnityEngine.Object unityObject && unityObject == null)
+            if (obj is Object unityObject && unityObject == null)
             {
                 throw new InvalidOperationException(message);
             }

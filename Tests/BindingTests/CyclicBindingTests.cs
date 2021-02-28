@@ -1,5 +1,7 @@
 ﻿using System;
 using NUnit.Framework;
+using UJect.Exceptions;
+using UJect.Injection;
 
 namespace UJect.Tests
 {
@@ -32,7 +34,7 @@ namespace UJect.Tests
         {
             var container = new DiContainer();
             container.Bind<IInterface1>().ToInstance(new Impl1());
-            Assert.Throws<InvalidOperationException>(() =>
+            Assert.Throws<CyclicDependencyException>(() =>
             {
                 container.Bind<IInterface2>().ToInstance(new Impl2());
             });

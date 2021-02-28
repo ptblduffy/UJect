@@ -1,5 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using NUnit.Framework;
+using NUnit.Framework.Internal;
+using UJect.Injection;
 
 namespace UJect.Tests
 {
@@ -14,6 +16,7 @@ namespace UJect.Tests
             container.Bind<IInterface1>().ToInstance(new Impl1());
             container.Bind<IInterface2>().ToInstance(new Impl2());
             container.TryResolveAll();
+            Assert.Pass("No exception thrown!");
         }
         
         private interface IInterface1
@@ -33,25 +36,5 @@ namespace UJect.Tests
         private class Impl2 : IInterface2
         {
         }
-        
-        private class NamedImpl1 : IInterface1
-        {
-            [Inject("Bob")]
-            public NamedImpl2 namedImpl2Bob;
-            
-            [Inject("Jerry")]
-            public NamedImpl2 namedImpl2Jerry;
-        }
-        
-        private class NamedImpl2 : IInterface1
-        {
-            public readonly string Name;
-            
-            public NamedImpl2(string name)
-            {
-                Name = name;
-            }
-        }
-        
     }
 }

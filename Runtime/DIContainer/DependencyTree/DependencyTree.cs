@@ -1,77 +1,76 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using UJect.Exceptions;
+using UJect.Injection;
 
 namespace UJect
 {
     public class DependencyTree
     {
-        private readonly Dictionary<DiContainer.InjectionKey, DependencyNode> nodeLookup = new Dictionary<DiContainer.InjectionKey, DependencyNode>();
-        private readonly HashSet<DiContainer.InjectionKey>                    roots      = new HashSet<DiContainer.InjectionKey>();
+        private readonly Dictionary<InjectionKey, DependencyNode> nodeLookup = new Dictionary<InjectionKey, DependencyNode>();
+        private readonly HashSet<DependencyNode>                    roots      = new HashSet<DependencyNode>();
+        private IEnumerable<DependencyNode> OrderedRoots => roots.OrderBy(n => n.InjectionKey);
 
-        private class DependencyNode
+        internal IEnumerable<InjectionKey> RootKeys => OrderedRoots.Select(dn=>dn.InjectionKey);
+
+
+
+        private List<InjectionKey> cachedSortedList;
+
+ 
+
+        private DependencyNode GetOrCreateNode(InjectionKey key, out bool created)
         {
-            public readonly  DiContainer.InjectionKey InjectionKey;
-            private readonly HashSet<DependencyNode>  dependsOn = new HashSet<DependencyNode>();
-
-            public DependencyNode(DiContainer.InjectionKey injectionKey)
+            created = false;
+            if (!nodeLookup.TryGetValue(key, out var node))
             {
-                this.InjectionKey = injectionKey;
+                node            = new DependencyNode(key);
+                nodeLookup[key] = node;
+                created         = true;
+                AddInjectorDependencies(key);
             }
 
-            internal HashSet<DependencyNode> DependsOn => dependsOn;
-
-            public void AddDependsOn(DependencyNode node)
+            return node;
+        }
+        
+        private void AddInjectorDependencies(InjectionKey injected)
+        {
+            var injector = InjectorCache.GetOrCreateInjector(injected.InjectedResourceType);
+            foreach (var dependsOn in injector.DependsOn)
             {
-                this.dependsOn.Add(node);
-            }
-
-            public override string ToString()
-            {
-                return $"Node [{InjectionKey}]";
+                AddDependency(injected, dependsOn, false);
             }
         }
 
-        internal void AddDependency(DiContainer.InjectionKey source, DiContainer.InjectionKey on, bool isRoot)
+        /// <summary>
+        /// Add a dependency.
+        ///
+        /// dependsOn will depend on dependency. Any subsequent dependencies will subsequently be added.
+        /// </summary>
+        /// <param name="dependsOn"></param>
+        /// <param name="dependency"></param>
+        internal void AddDependency(InjectionKey dependsOn, InjectionKey dependency) => AddDependency(dependsOn, dependency, true);
+        
+        private void AddDependency(InjectionKey dependsOn, InjectionKey dependency, bool isRoot)
         {
+            var sourceNode = GetOrCreateNode(dependsOn);
             //If a concrete class is bound to an implementation of itself, these will be equal. No need to track a self-referencing dependency
-            if (!source.Equals(on))
+            if (!dependsOn.Equals(dependency))
             {
-                GetOrCreateNode(source).AddDependsOn(GetOrCreateNode(on));
+                sourceNode.AddDependsOn(GetOrCreateNode(dependency));
                 cachedSortedList = null;
             }
 
             if (isRoot)
             {
-                roots.Add(source);
+                roots.Add(sourceNode);
                 cachedSortedList = null;
             }
         }
 
-        private DependencyNode GetOrCreateNode(DiContainer.InjectionKey key)
-        {
-            if (!nodeLookup.TryGetValue(key, out var node))
-            {
-                node            = new DependencyNode(key);
-                nodeLookup[key] = node;
-            }
+        private DependencyNode GetOrCreateNode(InjectionKey key) => GetOrCreateNode(key, out _);
 
-            return node;
-        }
-
-        private struct StackEntry
-        {
-            public DependencyNode Node;
-            public bool           IsParent;
-        }
-
-        private enum NodeState:byte
-        {
-            Unvisited = 0,
-            Open = 1,
-            Closed = 2,
-        }
-        
-        internal bool HasCycle(out DiContainer.InjectionKey onDependency)
+        internal bool HasCycle(out InjectionKey onDependency)
         {
             onDependency = default;
             var stack = new Stack<DependencyNode>();
@@ -88,9 +87,9 @@ namespace UJect
                 return NodeState.Unvisited;
             }
 
-            foreach (var root in roots)
+            foreach (var root in OrderedRoots)
             {
-                stack.Push(GetOrCreateNode(root));
+                stack.Push(root);
             }
 
             while (stack.Count != 0)
@@ -105,7 +104,7 @@ namespace UJect
                         {
                             stack.Push(dependsOn);
                         }
-                        else if(GetNodeState(dependsOn) == NodeState.Open)
+                        else if (GetNodeState(dependsOn) == NodeState.Open)
                         {
                             return true;
                         }
@@ -121,29 +120,28 @@ namespace UJect
             return false;
         }
 
-
-        private List<DiContainer.InjectionKey> cachedSortedList = null;
-        internal IEnumerable<DiContainer.InjectionKey> Sorted()
+        internal IEnumerable<InjectionKey> Sorted()
         {
             if (cachedSortedList == null)
             {
-                cachedSortedList = TopologicSort(roots.Select(GetOrCreateNode).ToArray())
+                cachedSortedList = TopologicSort(OrderedRoots)
                     .Select(n => n.InjectionKey)
                     .ToList();
             }
+
             return cachedSortedList;
         }
 
 
-        private List<DependencyNode> TopologicSort(params DependencyNode[] roots)
+        private static List<DependencyNode> TopologicSort(IEnumerable<DependencyNode> orderedRoots)
         {
             var stack = new Stack<StackEntry>();
             var visited = new HashSet<DependencyNode>();
             var sortedList = new List<DependencyNode>();
 
-            foreach (var rootNode in roots)
+            foreach (var rootNode in orderedRoots)
             {
-                stack.Push(new StackEntry() {Node = rootNode, IsParent = false});
+                stack.Push(new StackEntry {Node = rootNode, IsParent = false});
             }
 
             while (stack.Count > 0)
@@ -159,28 +157,61 @@ namespace UJect
 
                 if (visited.Add(next))
                 {
-                    stack.Push(new StackEntry() {Node = next, IsParent = true});
+                    stack.Push(new StackEntry {Node = next, IsParent = true});
                 }
 
-                foreach (var dOn in next.DependsOn)
+                foreach (var dOn in next.DependsOn.OrderBy(d=>d.InjectionKey))
                 {
                     if (visited.Contains(dOn))
                     {
                         continue;
                     }
 
-                    stack.Push(new StackEntry() {Node = dOn, IsParent = false});
+                    stack.Push(new StackEntry {Node = dOn, IsParent = false});
                 }
             }
 
             return sortedList;
         }
 
-        internal IEnumerable<DiContainer.InjectionKey> GetDependenciesFor(DiContainer.InjectionKey key)
+        internal IEnumerable<InjectionKey> GetDependenciesFor(InjectionKey key)
         {
             return GetOrCreateNode(key).DependsOn.Select(d => d.InjectionKey);
         }
 
+        private class DependencyNode
+        {
+            public readonly InjectionKey InjectionKey;
 
+            public DependencyNode(InjectionKey injectionKey)
+            {
+                InjectionKey = injectionKey;
+            }
+
+            internal HashSet<DependencyNode> DependsOn { get; } = new HashSet<DependencyNode>();
+
+            public void AddDependsOn(DependencyNode node)
+            {
+                DependsOn.Add(node);
+            }
+
+            public override string ToString()
+            {
+                return $"Node [{InjectionKey}]";
+            }
+        }
+
+        private struct StackEntry
+        {
+            public DependencyNode Node;
+            public bool           IsParent;
+        }
+
+        private enum NodeState : byte
+        {
+            Unvisited = 0,
+            Open      = 1,
+            Closed    = 2
+        }
     }
 }
