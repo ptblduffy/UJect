@@ -1,34 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using UJect.Assertions;
+using JetBrains.Annotations;
 using UJect.Exceptions;
 using UJect.Factories;
 using UJect.Injection;
 using UJect.Resolvers;
+using Uject.Utilities;
+using UJect.Utilities;
 using UnityEngine;
 using static UJect.Assertions.RuntimeAssert;
-using Object = UnityEngine.Object;
 
 namespace UJect
 {
-    public sealed partial class DiContainer : IDisposable
+    public sealed class DiContainer : IDisposable
     {
+        private readonly Dictionary<InjectionKey, object>    resolvedInstances = new Dictionary<InjectionKey, object>();
         private readonly Dictionary<InjectionKey, IResolver> dependencyResolvers = new Dictionary<InjectionKey, IResolver>();
         private readonly DependencyTree                      dependencyTree      = new DependencyTree();
         private readonly DiContainer                         parentContainer;
         private readonly string                              containerName;
 
-        private bool isDisposed;
-
-        public DiContainer(DiContainer parentContainer = null, string containerName = null)
-        {
-            this.parentContainer = parentContainer;
-            this.containerName   = containerName;
-            Phase                = DiPhase.Bind;
-            BindInstance(this);
-        }
-
+        private DiPhase phase;
+        private bool    isDisposed;
+        
         private DiPhase Phase
         {
             get => phase;
@@ -42,6 +36,31 @@ namespace UJect
             }
         }
 
+        
+        /// <summary>
+        /// Create a new DiContainer with an empty name
+        /// </summary>
+        public DiContainer() : this(null, null){}
+        
+        /// <summary>
+        /// Create a new DiContainer with the provided name
+        /// </summary>
+        /// <param name="containerName"></param>
+        public DiContainer(string containerName) : this(null, containerName){}
+
+        /// <summary>
+        /// Create a new DiContainer with the provided name and parent container
+        /// </summary>
+        /// <param name="parentContainer"></param>
+        /// <param name="containerName"></param>
+        internal DiContainer(DiContainer parentContainer = null, string containerName = null)
+        {
+            this.parentContainer = parentContainer;
+            this.containerName   = containerName;
+            Phase                = DiPhase.Bind;
+            BindInstance(this);
+        }
+        
         public void Dispose()
         {
             if (isDisposed)
@@ -50,9 +69,28 @@ namespace UJect
             }
 
             isDisposed = true;
+            foreach (var resolvedInstance in resolvedInstances.Values)
+            {
+                if (!LifetimeCheck.IsNullOrDestroyed(resolvedInstance) && (resolvedInstance is IDisposable disposable))
+                {
+                    disposable.Dispose();
+                }
+            }
+
+            foreach (var dependencyResolver in dependencyResolvers.Values)
+            {
+                if (!LifetimeCheck.IsNullOrDestroyed(dependencyResolver) && (dependencyResolver is IDisposable disposable))
+                {
+                    disposable.Dispose();
+                }
+            }
+            
+            resolvedInstances.Clear();
             dependencyResolvers.Clear();
         }
 
+        [LibraryEntryPoint]
+        [NotNull]
         public DiContainer CreateChildContainer(string childContainerName = null)
         {
             return new DiContainer(this, childContainerName);
@@ -70,6 +108,8 @@ namespace UJect
         /// <typeparam name="TInterface"></typeparam>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
+        [LibraryEntryPoint]
+        [NotNull]
         public TInterface Get<TInterface>(string customId = null) where TInterface : class
         {
             AssertIsFalse(isDisposed, "You should not try to retrieve bindings from a disposed container!");
@@ -89,7 +129,8 @@ namespace UJect
         /// <typeparam name="TInterface"></typeparam>
         /// <param name="dependency">The returned dependency</param>
         /// <returns>True if dependency is bound, false otherwise</returns>
-        public bool TryGet<TInterface>(out TInterface dependency) where TInterface : class
+        [LibraryEntryPoint]
+        public bool TryGet<TInterface>([NotNull] out TInterface dependency) where TInterface : class
         {
             return TryGet(null, out dependency);
         }
@@ -100,7 +141,8 @@ namespace UJect
         /// <param name="customId"></param>
         /// <param name="dependency">The returned dependency</param>
         /// <returns>True if dependency is bound, false otherwise</returns>
-        public bool TryGet<TType>(string customId, out TType dependency)
+        [LibraryEntryPoint]
+        public bool TryGet<TType>(string customId, [NotNull]  out TType dependency)
         {
             var key = new InjectionKey(typeof(TType), customId);
             return TryGetDependencyInternal(key, out dependency);
@@ -114,14 +156,14 @@ namespace UJect
             if (resolvedInstances.TryGetValue(key, out var resolvedDependency))
             {
                 dependency = (TType)resolvedDependency;
-                RuntimeAssert.AssertObjectIsAlive(dependency, $"Null dependency detected in: {this}. It should have been unregistered!");
+                AssertObjectIsAlive(dependency, $"Null dependency detected in: {this}. It should have been unregistered!");
                 return true;
             }
 
             if (parentContainer != null && parentContainer.TryGetDependencyInternal<TType>(key, out var parentDependency))
             {
                 dependency = parentDependency;
-                RuntimeAssert.AssertObjectIsAlive(dependency, $"Null dependency detected in parent: {parentContainer}. It should have been unregistered!");
+                AssertObjectIsAlive(dependency, $"Null dependency detected in parent: {parentContainer}. It should have been unregistered!");
                 return true;
             }
 
@@ -129,6 +171,7 @@ namespace UJect
             return false;
         }
 
+        [LibraryEntryPoint]
         public void InjectInto(object obj)
         {
             AssertObjectIsAlive(obj, "Can't inject into null Object!");
@@ -144,6 +187,7 @@ namespace UJect
 
         #region Public Binding Interface
 
+        [LibraryEntryPoint]
         public IDiBinder<TInterface> Bind<TInterface>()
         {
             AssertIsFalse(isDisposed, "You should not try to bind to a disposed container!");
@@ -151,6 +195,7 @@ namespace UJect
             return new DiBinder<TInterface>(this);
         }
 
+        [LibraryEntryPoint]
         public DiContainer BindInstance<TClass>(TClass instance, string customId = null) where TClass : class
         {
             AssertIsFalse(isDisposed, "You should not try to bind to a disposed container!");
@@ -159,17 +204,19 @@ namespace UJect
             return this;
         }
 
+        [LibraryEntryPoint]
         public bool Unbind<TType>(string customId = null)
         {
             var key = new InjectionKey(typeof(TType), customId);
-            if (dependencyResolvers.TryGetValue(key, out var resolver))
+            if (!dependencyResolvers.ContainsKey(key))
             {
-                dependencyResolvers.Remove(key);
-                resolvedInstances.Remove(key);
-                return true;
+                return false;
             }
 
-            return false;
+            dependencyResolvers.Remove(key);
+            resolvedInstances.Remove(key);
+            return true;
+
         }
 
         #endregion Public Binding Interface
@@ -231,15 +278,13 @@ namespace UJect
         
         #endregion Internal Binding Methods
 
-        #region Resolvers
-
-        private readonly Dictionary<InjectionKey, object> resolvedInstances = new Dictionary<InjectionKey, object>();
-        private          DiPhase                          phase;
+        #region Resolving Instances
 
         /// <summary>
         ///     Resolve all dependencies, if required. You shouldn't have to call this, it should happen automatically when attempting to retrieve a dependency.
         /// </summary>
         /// <exception cref="InvalidOperationException"></exception>
+        [LibraryEntryPoint]
         public void TryResolveAll()
         {
             if (Phase < DiPhase.Resolved)
@@ -278,6 +323,7 @@ namespace UJect
             resolvedInstances.Add(injectionKey, instance);
         }
 
-        #endregion
+        #endregion Resolving Instances
+
     }
 }
