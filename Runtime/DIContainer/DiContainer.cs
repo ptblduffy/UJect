@@ -26,16 +26,8 @@ namespace UJect
         private DiPhase Phase
         {
             get => phase;
-            set
-            {
-                if (phase != value)
-                {
-                    Debug.Log($"DI moving to phase {value}");
-                    phase = value;
-                }
-            }
+            set => phase = value;
         }
-
         
         /// <summary>
         /// Create a new DiContainer with an empty name

@@ -31,7 +31,6 @@ namespace UJect.Tests
             dependencyTree.AddDependency(interface1Key, impl1Key);
             var sorted = dependencyTree.Sorted().ToList();
             
-            Debug.Log("1: " + string.Join(", ", sorted.Select(s=>s.ToString())));
             Assert.AreEqual(sorted[0], interface3Key, "Interface 3 should be the first thing to resolve, since impl1 depends on it and interface1 depends on impl1");
             Assert.AreEqual(sorted[1], interface2Key, "Interface 2 should be the second thing to resolve, since impl1 depends on it and interface1 depends on impl1");
             Assert.AreEqual(sorted[2], impl1Key, "Impl 1 should be the third, since interface 1 depends on it");
@@ -48,7 +47,6 @@ namespace UJect.Tests
             Assert.IsTrue(dependencyTree.RootKeys.Contains(interface1Key));
             Assert.IsTrue(dependencyTree.RootKeys.Contains(interface2Key));
             
-            Debug.Log("2: "+ string.Join(", ", sorted.Select(s=>s.ToString())));
             Assert.AreEqual(sorted[0], impl2Key, "Now we should be resolving impl2 first");
             Assert.AreEqual(sorted[1], interface2Key, "Interface 2 should be the second thing to resolve, since impl1 depends on it and interface1 depends on impl1");
             Assert.AreEqual(sorted[2], interface3Key, "Interface 3 should be the third thing to resolve, since impl1 depends on it and interface1 depends on impl1");
