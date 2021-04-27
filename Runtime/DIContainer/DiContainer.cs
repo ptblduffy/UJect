@@ -81,11 +81,32 @@ namespace UJect
             dependencyResolvers.Clear();
         }
 
+        /// <summary>
+        /// Create a new DiContainer that is a child of this container.
+        /// </summary>
+        /// <param name="childContainerName"></param>
+        /// <returns></returns>
         [LibraryEntryPoint]
         [NotNull]
         public DiContainer CreateChildContainer(string childContainerName = null)
         {
             return new DiContainer(this, childContainerName);
+        }
+
+        /// <summary>
+        /// Create an instance of type T, with all constructor params and fields injected
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        [LibraryEntryPoint]
+        [NotNull]
+        public T CreateInjectedInstance<T>()
+        {
+            var injector = InjectorCache.GetOrCreateInjector(typeof(T));
+            // Injector.CreateInstance will do constructor injection but not field injection
+            var instance = injector.CreateInstance<T>(this);
+            injector.InjectFields(instance, this);
+            return instance;
         }
 
         public override string ToString()
