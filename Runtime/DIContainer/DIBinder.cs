@@ -15,6 +15,15 @@ namespace UJect
         /// <returns>The same binder</returns>
         [LibraryEntryPoint]
         IDiBinder<TInterface> WithId(string id);
+
+        /// <summary>
+        /// Bind the type as an unshared instance (meaning every access to a given interface will get a separate implementation instance)
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>The same binder</returns>
+        [LibraryEntryPoint]
+        IDiBinder<TInterface> AsUnsharedInstance();
+
         
         /// <summary>
         /// Bind the given type to a provided concrete implementation instance of that type.
@@ -76,6 +85,7 @@ namespace UJect
         private readonly DiContainer dependencies;
 
         private string customId;
+        private bool   isSharedImplementationInstance = true;
 
         public DiBinder(DiContainer dependencies)
         {
@@ -95,6 +105,18 @@ namespace UJect
         }
 
         /// <summary>
+        /// Bind the type as an unshared instance (meaning every access to a given interface will get a separate implementation instance)
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>The same binder</returns>
+        [LibraryEntryPoint]
+        public IDiBinder<TInterface> AsUnsharedInstance()
+        {
+            isSharedImplementationInstance = false;
+            return this;
+        }
+        
+        /// <summary>
         /// Bind the given type to a provided concrete implementation instance of that type.
         /// </summary>
         /// <param name="instance"></param>
@@ -103,7 +125,7 @@ namespace UJect
         [LibraryEntryPoint]
         public DiContainer ToInstance<TImpl>(TImpl instance) where TImpl : TInterface
         {
-            var resolver = new InstanceResolver<TImpl>(instance);
+            var resolver = WrapResolverForSingletonIfNecessary(new InstanceResolver<TImpl>(instance));
             dependencies.InstallBindingInternal<TInterface, TImpl>(customId, resolver);
             return dependencies;
         }
@@ -116,7 +138,7 @@ namespace UJect
         [LibraryEntryPoint]
         public DiContainer ToNewInstance<TImpl>() where TImpl : TInterface
         {
-            var resolver = new NewInstanceResolver<TImpl>(dependencies);
+            var resolver = WrapResolverForSingletonIfNecessary(new NewInstanceResolver<TImpl>(dependencies));
             dependencies.InstallBindingInternal<TInterface, TImpl>(customId, resolver);
             return dependencies;
         }
@@ -129,7 +151,7 @@ namespace UJect
         [LibraryEntryPoint]
         public DiContainer ToFactoryMethod<TImpl>(Func<TImpl> factoryMethod) where TImpl : TInterface
         {
-            var resolver = new FunctionInstanceResolver<TImpl>(factoryMethod);
+            var resolver = WrapResolverForSingletonIfNecessary(new FunctionInstanceResolver<TImpl>(factoryMethod));
             dependencies.InstallBindingInternal<TInterface, TImpl>(customId, resolver);
             return dependencies;
         }
@@ -145,7 +167,19 @@ namespace UJect
         [LibraryEntryPoint]
         public DiContainer ToFactory<TImpl>(IInstanceFactory<TImpl> factoryImpl) where TImpl : TInterface
         {
-            dependencies.InstallFactoryBinding<TInterface, TImpl>(customId, factoryImpl);
+            var fromKey = new InjectionKey(typeof(TInterface), customId);
+            var toKey = new InjectionKey(typeof(TImpl));
+
+            var factoryIntKey = new InjectionKey(typeof(IInstanceFactory<TImpl>), customId);
+            var factoryKey = new InjectionKey(factoryImpl.GetType());
+
+            //Bind the interface to the concrete implementation
+            dependencies.InstallBindingInternal(fromKey, toKey, WrapResolverForSingletonIfNecessary(new ExternalFactoryResolver<TImpl>(factoryImpl, dependencies)));
+            //Bind the factory interface to the factory implementation
+            dependencies.InstallBindingInternal(factoryIntKey, factoryKey, new InstanceResolver<IInstanceFactory<TImpl>>(factoryImpl));
+            //Add a dependency on the factory interface to the interface. This will ensure the factory's dependencies are ready before the factory is used
+            dependencies.AddDependencies(fromKey, factoryIntKey);
+
             return dependencies;
         }
 
@@ -158,7 +192,7 @@ namespace UJect
         [LibraryEntryPoint]
         public DiContainer ToResource<TImpl>(string resourcePath) where TImpl : Object, TInterface
         {
-            var resolver = new ResourceInstanceResolver<TImpl>(resourcePath);
+            var resolver = WrapResolverForSingletonIfNecessary(new ResourceInstanceResolver<TImpl>(resourcePath));
             dependencies.InstallBindingInternal<TInterface, TImpl>(customId, resolver);
             return dependencies;
         }
@@ -172,8 +206,20 @@ namespace UJect
         [LibraryEntryPoint]
         public DiContainer ToCustomResolver<TImpl>(IResolver<TImpl> customResolver) where TImpl : TInterface
         {
-            dependencies.InstallBindingInternal<TInterface, TImpl>(customId, customResolver);
+            var resolver = WrapResolverForSingletonIfNecessary(customResolver);
+            dependencies.InstallBindingInternal<TInterface, TImpl>(customId, resolver);
             return dependencies;
+        }
+
+        private IResolver<TImpl> WrapResolverForSingletonIfNecessary<TImpl>(IResolver<TImpl> originalResolver)
+        {
+            var resolver = originalResolver;
+            if (isSharedImplementationInstance)
+            {
+                resolver = new SharedInstanceResolver<TImpl>(dependencies, customId,resolver);
+            }
+
+            return resolver;
         }
     }
 }

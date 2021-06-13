@@ -6,6 +6,34 @@ using Object = UnityEngine.Object;
 
 namespace UJect.Resolvers
 {
+
+    internal class SharedInstanceResolver<TImpl> : ResolverBase<TImpl>
+    {
+        private readonly DiContainer      diContainer;
+        private readonly IResolver<TImpl> innerResolver;
+        private readonly InjectionKey     sharedInstanceKey;
+
+        public SharedInstanceResolver(DiContainer diContainer, string injectionId, IResolver<TImpl> innerResolver)
+        {
+            this.diContainer   = diContainer;
+            this.innerResolver = innerResolver;
+            this.sharedInstanceKey = new InjectionKey(typeof(TImpl), injectionId);
+        }
+
+        public override TImpl ResolveTypedInstance()
+        {
+            Debug.Log($"Resolving shared instance for key: {sharedInstanceKey}");
+            var instance = diContainer.SharedInstanceCache.GetOrCreateSharedInstance(sharedInstanceKey, () => innerResolver.ResolveTypedInstance());
+            return instance;
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            diContainer.SharedInstanceCache.ReleaseBinding(sharedInstanceKey);
+        }
+    }
+    
     /// <summary>
     /// Simplest resolver. Always returns the same provided instance of TImpl
     /// </summary>

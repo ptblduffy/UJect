@@ -1,9 +1,8 @@
-﻿using System;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using UJect.Exceptions;
 using UJect.Injection;
 
-namespace UJect.Tests
+namespace UJect.Tests.Binding
 {
     [TestFixture]
     public class CyclicBindingTests

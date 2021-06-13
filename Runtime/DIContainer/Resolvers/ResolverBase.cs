@@ -8,5 +8,10 @@
     {
         public abstract TImpl ResolveTypedInstance();
         object IResolver.Resolve() => ResolveTypedInstance();
+
+        public virtual void Dispose()
+        {
+            //No-op by default
+        }
     }
 }

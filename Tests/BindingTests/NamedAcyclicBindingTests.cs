@@ -1,8 +1,7 @@
-﻿using System.Runtime.InteropServices;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using UJect.Injection;
 
-namespace UJect.Tests
+namespace UJect.Tests.Binding
 {
     [TestFixture]
     public class NamedAcyclicBindingTests

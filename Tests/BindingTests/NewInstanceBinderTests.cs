@@ -1,8 +1,6 @@
 ﻿using NUnit.Framework;
-using UJect;
-using UJect.Injection;
 
-namespace UJect.Tests
+namespace UJect.Tests.Binding
 {
     [TestFixture]
     public class NewInstanceBinderTests

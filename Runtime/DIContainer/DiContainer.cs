@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using JetBrains.Annotations;
 using UJect.Exceptions;
-using UJect.Factories;
 using UJect.Injection;
 using UJect.Resolvers;
 using Uject.Utilities;
@@ -14,21 +14,23 @@ namespace UJect
 {
     public sealed class DiContainer : IDisposable
     {
-        private readonly Dictionary<InjectionKey, object>    resolvedInstances = new Dictionary<InjectionKey, object>();
-        private readonly Dictionary<InjectionKey, IResolver> dependencyResolvers = new Dictionary<InjectionKey, IResolver>();
-        private readonly DependencyTree                      dependencyTree      = new DependencyTree();
-        private readonly DiContainer                         parentContainer;
-        private readonly string                              containerName;
+        private readonly  Dictionary<InjectionKey, object>    resolvedInstances   = new Dictionary<InjectionKey, object>();
+        private readonly  Dictionary<InjectionKey, IResolver> dependencyResolvers = new Dictionary<InjectionKey, IResolver>();
+        internal readonly SharedInstanceCache                 SharedInstanceCache = new SharedInstanceCache();
+        private readonly  DependencyTree                      dependencyTree      = new DependencyTree();
+        private readonly  DiContainer                         parentContainer;
+        private readonly  string                              containerName;
 
         private DiPhase phase;
         private bool    isDisposed;
-        
+
         private DiPhase Phase
         {
             get => phase;
             set => phase = value;
         }
         
+
         /// <summary>
         /// Create a new DiContainer with an empty name
         /// </summary>
@@ -81,32 +83,11 @@ namespace UJect
             dependencyResolvers.Clear();
         }
 
-        /// <summary>
-        /// Create a new DiContainer that is a child of this container.
-        /// </summary>
-        /// <param name="childContainerName"></param>
-        /// <returns></returns>
         [LibraryEntryPoint]
         [NotNull]
         public DiContainer CreateChildContainer(string childContainerName = null)
         {
             return new DiContainer(this, childContainerName);
-        }
-
-        /// <summary>
-        /// Create an instance of type T, with all constructor params and fields injected
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        [LibraryEntryPoint]
-        [NotNull]
-        public T CreateInjectedInstance<T>()
-        {
-            var injector = InjectorCache.GetOrCreateInjector(typeof(T));
-            // Injector.CreateInstance will do constructor injection but not field injection
-            var instance = injector.CreateInstance<T>(this);
-            injector.InjectFields(instance, this);
-            return instance;
         }
 
         public override string ToString()
@@ -221,15 +202,19 @@ namespace UJect
         public bool Unbind<TType>(string customId = null)
         {
             var key = new InjectionKey(typeof(TType), customId);
-            if (!dependencyResolvers.ContainsKey(key))
-            {
-                return false;
-            }
-
-            dependencyResolvers.Remove(key);
             resolvedInstances.Remove(key);
-            return true;
 
+            var hasResolver = dependencyResolvers.TryGetValue(key, out var resolver);
+            
+            if (hasResolver)
+            {
+                dependencyResolvers.Remove(key);
+                resolver.Dispose();
+            }
+            Debug.Log($"Unbind {key} {hasResolver}:\n\t{string.Join(",", dependencyResolvers.Keys.Select(k=>k.ToString()))}");
+            
+            
+            return hasResolver;
         }
 
         #endregion Public Binding Interface
@@ -242,24 +227,8 @@ namespace UJect
             var toKey = new InjectionKey(typeof(TTo));
             InstallBindingInternal(fromKey, toKey, dependencyResolver);
         }
-
-        internal void InstallFactoryBinding<TFrom, TTo>(string customId, IInstanceFactory<TTo> factory)
-        {
-            var fromKey = new InjectionKey(typeof(TFrom), customId);
-            var toKey = new InjectionKey(typeof(TTo));
-
-            var factoryIntKey = new InjectionKey(typeof(IInstanceFactory<TTo>), customId);
-            var factoryKey = new InjectionKey(factory.GetType());
-
-            //Bind the interface to the concrete implementation
-            InstallBindingInternal(fromKey, toKey, new ExternalFactoryResolver<TTo>(factory, this));
-            //Bind the factory interface to the factory implementation
-            InstallBindingInternal(factoryIntKey, factoryKey, new InstanceResolver<IInstanceFactory<TTo>>(factory));
-            //Add a dependency on the factory interface to the interface. This will ensure the factory's dependencies are ready before the factory is used
-            AddDependencies(fromKey, factoryIntKey);
-        }
-
-        private void InstallBindingInternal(InjectionKey fromKey, InjectionKey toKey, IResolver dependencyResolver)
+        
+        internal void InstallBindingInternal(InjectionKey fromKey, InjectionKey toKey, IResolver dependencyResolver)
         {
             AddDependencies(fromKey, toKey);
 
@@ -271,6 +240,7 @@ namespace UJect
             dependencyResolvers.Add(fromKey, dependencyResolver);
 
             Phase = DiPhase.Bind;
+            Debug.Log($"Bind {fromKey}:\n\t{string.Join(",", dependencyResolvers.Keys.Select(k=>k.ToString()))}");
         }
 
         /// <summary>
@@ -279,7 +249,7 @@ namespace UJect
         /// <param name="depends"></param>
         /// <param name="dependency"></param>
         /// <exception cref="CyclicDependencyException"></exception>
-        private void AddDependencies(InjectionKey depends, InjectionKey dependency)
+        internal void AddDependencies(InjectionKey depends, InjectionKey dependency)
         {
             dependencyTree.AddDependency(depends, dependency);
 
