@@ -125,7 +125,7 @@ namespace UJect
         [LibraryEntryPoint]
         public DiContainer ToInstance<TImpl>(TImpl instance) where TImpl : TInterface
         {
-            var resolver = WrapResolverForSingletonIfNecessary(new InstanceResolver<TImpl>(instance));
+            var resolver = WrapResolverForSharedInstanceIfNecessary(new InstanceResolver<TImpl>(instance));
             dependencies.InstallBindingInternal<TInterface, TImpl>(customId, resolver);
             return dependencies;
         }
@@ -138,7 +138,7 @@ namespace UJect
         [LibraryEntryPoint]
         public DiContainer ToNewInstance<TImpl>() where TImpl : TInterface
         {
-            var resolver = WrapResolverForSingletonIfNecessary(new NewInstanceResolver<TImpl>(dependencies));
+            var resolver = WrapResolverForSharedInstanceIfNecessary(new NewInstanceResolver<TImpl>(dependencies));
             dependencies.InstallBindingInternal<TInterface, TImpl>(customId, resolver);
             return dependencies;
         }
@@ -151,7 +151,7 @@ namespace UJect
         [LibraryEntryPoint]
         public DiContainer ToFactoryMethod<TImpl>(Func<TImpl> factoryMethod) where TImpl : TInterface
         {
-            var resolver = WrapResolverForSingletonIfNecessary(new FunctionInstanceResolver<TImpl>(factoryMethod));
+            var resolver = WrapResolverForSharedInstanceIfNecessary(new FunctionInstanceResolver<TImpl>(factoryMethod));
             dependencies.InstallBindingInternal<TInterface, TImpl>(customId, resolver);
             return dependencies;
         }
@@ -174,7 +174,7 @@ namespace UJect
             var factoryKey = new InjectionKey(factoryImpl.GetType());
 
             //Bind the interface to the concrete implementation
-            dependencies.InstallBindingInternal(fromKey, toKey, WrapResolverForSingletonIfNecessary(new ExternalFactoryResolver<TImpl>(factoryImpl, dependencies)));
+            dependencies.InstallBindingInternal(fromKey, toKey, WrapResolverForSharedInstanceIfNecessary(new ExternalFactoryResolver<TImpl>(factoryImpl, dependencies)));
             //Bind the factory interface to the factory implementation
             dependencies.InstallBindingInternal(factoryIntKey, factoryKey, new InstanceResolver<IInstanceFactory<TImpl>>(factoryImpl));
             //Add a dependency on the factory interface to the interface. This will ensure the factory's dependencies are ready before the factory is used
@@ -192,7 +192,7 @@ namespace UJect
         [LibraryEntryPoint]
         public DiContainer ToResource<TImpl>(string resourcePath) where TImpl : Object, TInterface
         {
-            var resolver = WrapResolverForSingletonIfNecessary(new ResourceInstanceResolver<TImpl>(resourcePath));
+            var resolver = WrapResolverForSharedInstanceIfNecessary(new ResourceInstanceResolver<TImpl>(resourcePath));
             dependencies.InstallBindingInternal<TInterface, TImpl>(customId, resolver);
             return dependencies;
         }
@@ -206,17 +206,24 @@ namespace UJect
         [LibraryEntryPoint]
         public DiContainer ToCustomResolver<TImpl>(IResolver<TImpl> customResolver) where TImpl : TInterface
         {
-            var resolver = WrapResolverForSingletonIfNecessary(customResolver);
+            var resolver = WrapResolverForSharedInstanceIfNecessary(customResolver);
             dependencies.InstallBindingInternal<TInterface, TImpl>(customId, resolver);
             return dependencies;
         }
 
-        private IResolver<TImpl> WrapResolverForSingletonIfNecessary<TImpl>(IResolver<TImpl> originalResolver)
+        /// <summary>
+        /// If we're going to use a Shared Instance, wrap the internal resolver (which may get a new instance every time) in a SharedInstanceResolver, which will look for an already
+        /// resolved instance before invoking the internal resolver
+        /// </summary>
+        /// <param name="originalResolver"></param>
+        /// <typeparam name="TImpl"></typeparam>
+        /// <returns></returns>
+        private IResolver<TImpl> WrapResolverForSharedInstanceIfNecessary<TImpl>(IResolver<TImpl> originalResolver)
         {
             var resolver = originalResolver;
             if (isSharedImplementationInstance)
             {
-                resolver = new SharedInstanceResolver<TImpl>(dependencies, customId,resolver);
+                resolver = new SharedInstanceResolver<TImpl>(dependencies, customId, resolver);
             }
 
             return resolver;
