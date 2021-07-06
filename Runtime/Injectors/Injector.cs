@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using UJect.Exceptions;
 
 namespace UJect.Injection
 {
@@ -91,6 +92,11 @@ namespace UJect.Injection
 
         public TImpl CreateInstance<TImpl>(DiContainer diContainer)
         {
+            if (injectableConstructors.Count == 0)
+            {
+                throw new InjectionException(typeof(TImpl), "No constructor found");
+            }
+            
             var constructorPair = injectableConstructors.First();
             var paramKeys = constructorPair.ParamKeys;
             var args = new object[paramKeys.Length];
