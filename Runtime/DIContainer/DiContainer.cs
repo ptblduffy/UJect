@@ -169,14 +169,14 @@ namespace UJect
             if (resolvedInstances.TryGetValue(key, out var resolvedDependency))
             {
                 dependency = (TType)resolvedDependency;
-                AssertObjectIsAlive(dependency, $"Null dependency detected in: {this}. It should have been unregistered!");
+                AssertObjectIsAlive(dependency, "Null dependency detected in: {0}. It should have been unregistered!", this);
                 return true;
             }
 
             if (parentContainer != null && parentContainer.TryGetDependencyInternal<TType>(key, out var parentDependency))
             {
                 dependency = parentDependency;
-                AssertObjectIsAlive(dependency, $"Null dependency detected in parent: {parentContainer}. It should have been unregistered!");
+                AssertObjectIsAlive(dependency, "Null dependency detected in parent: {0}. It should have been unregistered!", parentContainer);
                 return true;
             }
 
