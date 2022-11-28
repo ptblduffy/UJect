@@ -1,6 +1,8 @@
 {
-    "name": "UJect.Runtime",
-    "references": [],
+    "name": "UJect.UnityExtensions",
+    "references": [
+        "UJect.Runtime"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": true,
@@ -11,5 +13,5 @@
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],
-    "noEngineReferences": true
+    "noEngineReferences": false
 }

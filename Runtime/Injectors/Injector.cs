@@ -90,11 +90,11 @@ namespace UJect.Injection
             }
         }
 
-        public TImpl CreateInstance<TImpl>(DiContainer diContainer)
+        public object CreateInstance(DiContainer diContainer, Type newInstanceType)
         {
             if (injectableConstructors.Count == 0)
             {
-                throw new InjectionException(typeof(TImpl), "No constructor found");
+                throw new InjectionException(newInstanceType, "No constructor found");
             }
             
             var constructorPair = injectableConstructors.First();
@@ -113,13 +113,14 @@ namespace UJect.Injection
                 }
             }
 
-            var instance = (TImpl)constructorPair.ConstructorInfo.Invoke(args);
+            var instance = constructorPair.ConstructorInfo.Invoke(args);
             
             // We don't call InjectFields here because it'll be called automatically when the instance resolves
             
             return instance;
         }
 
+        public TImpl CreateInstance<TImpl>(DiContainer diContainer) => (TImpl)CreateInstance(diContainer, typeof(TImpl));
 
         #region Helper Structs
 

@@ -1,6 +1,5 @@
 ﻿using System;
 using UJect.Utilities;
-using Object = UnityEngine.Object;
 
 namespace UJect.Assertions
 {
@@ -23,6 +22,14 @@ namespace UJect.Assertions
         }
 
         public static void AssertObjectIsAlive(object obj, string message)
+        {
+            if (obj == null)
+            {
+                throw new InvalidOperationException(message);
+            }
+        }
+        
+        public static void AssertObjectIsAlive(IResolvedInstance obj, string message)
         {
             if (LifetimeCheck.IsNullOrDestroyed(obj))
             {
