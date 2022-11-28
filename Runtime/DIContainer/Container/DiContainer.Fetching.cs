@@ -85,7 +85,7 @@ namespace UJect
             if (resolvedInstances.TryGetValue(key, out var resolvedDependency))
             {
                 dependency = resolvedDependency;
-                RuntimeAssert.AssertObjectIsAlive(resolvedDependency, $"Null dependency detected in: {this}. It should have been unregistered!");
+                RuntimeAssert.AssertNotNullFormat(resolvedDependency, "Null dependency detected in: {0} for key {1}. It should have been unregistered!", this, key);
                 return true;
             }
 

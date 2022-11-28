@@ -179,7 +179,7 @@ namespace UJect
         private void ResolveInstance(InjectionKey injectionKey, IResolver resolver)
         {
             var resolvedInstance = resolver.Resolve();
-            AssertObjectIsAlive(resolvedInstance, $"Cannot inject into dead resolved instance for key {injectionKey}");
+            AssertObjectIsAliveFormat(resolvedInstance, "Cannot inject into dead resolved instance for key {0}", injectionKey);
             InjectInto(resolvedInstance.InstanceObject);
             resolvedInstances.Add(injectionKey, resolvedInstance);
         }

@@ -39,7 +39,7 @@ namespace UJect
         [LibraryEntryPoint]
         public void InjectInto(object obj)
         {
-            RuntimeAssert.AssertObjectIsAlive(obj, "Can't inject into null Object!");
+            RuntimeAssert.AssertNotNull(obj, "Can't inject into null Object!");
             var objType = obj.GetType();
             InjectorCache.GetOrCreateInjector(objType).InjectFields(obj, this);
         }
