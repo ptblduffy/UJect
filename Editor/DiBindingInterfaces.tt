@@ -1,0 +1,91 @@
+﻿<#@ template language="C#" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension="g.cs"#>
+
+using System;
+using UJect.Factories;
+using UJect.Resolvers;
+using Uject.Utilities;
+
+namespace UJect
+{
+<#
+    for (int i = 1; i <= 5; i++)
+    {
+        GenerateBinder(i);
+    }
+    
+    void GenerateBinder(int numInterfaces)
+    {
+        var interfaceNames = new List<string>();
+        var inInterfaceNames = new List<string>();
+        for (int i = 0; i < numInterfaces; i++)
+        {
+            var interfaceName = $"TInterface{i + 1}";
+            interfaceNames.Add(interfaceName);
+            inInterfaceNames.Add($"in {interfaceName}");
+            
+        }
+        var joinedIns = string.Join(", ", inInterfaceNames);
+        var joinedInterfaces = string.Join(", ", interfaceNames);
+#>
+
+    public interface IDiBinder<<#=joinedIns#>> : IDiBinder
+    {
+        /// <summary>
+        /// Bind the type resource with the custom ID provided. This allows disambiguating multiple resources of the same type
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>The same binder</returns>
+        [LibraryEntryPoint]
+        IDiBinder<<#=joinedInterfaces#>> WithId(string id);
+        
+        /// <summary>
+        /// Bind the given type to a provided concrete implementation instance of that type.
+        /// </summary>
+        /// <param name="instance"></param>
+        /// <typeparam name="TImpl"></typeparam>
+        /// <returns>The original container</returns>
+        [LibraryEntryPoint]
+        DiContainer ToInstance<TImpl>(TImpl instance) where TImpl : <#=joinedInterfaces#>;
+        
+        /// <summary>
+        /// Bind the given type to a new instance of the provided concrete implementation of that type.
+        /// </summary>
+        /// <typeparam name="TImpl"></typeparam>
+        /// <returns>The original container</returns>
+        [LibraryEntryPoint]
+        DiContainer ToNewInstance<TImpl>() where TImpl : <#=joinedInterfaces#>;
+        
+        /// <summary>
+        /// Bind the given type to a function that will provide a concrete instance of that type
+        /// </summary>
+        /// <param name="factoryMethod"></param>
+        /// <returns>The original container</returns>
+        [LibraryEntryPoint]
+        DiContainer ToFactoryMethod<TImpl>(Func<TImpl> factoryMethod) where TImpl : <#=joinedInterfaces#>;
+        
+        /// <summary>
+        /// Bind the given type to a factory implementation that will provide a concrete instance of that type.
+        /// Factories can be injected into before resolution, making them useful when you want to use a bunch of injected resources to
+        /// create the instance.
+        /// </summary>
+        /// <param name="factoryImpl"></param>
+        /// <typeparam name="TImpl"></typeparam>
+        /// <returns>The original container</returns>
+        [LibraryEntryPoint]
+        DiContainer ToFactory<TImpl>(IInstanceFactory<TImpl> factoryImpl) where TImpl : <#=joinedInterfaces#>;
+
+        /// <summary>
+        /// Bind the given type to a custom resolver.
+        /// </summary>
+        /// <param name="customResolver"></param>
+        /// <typeparam name="TImpl"></typeparam>
+        /// <returns>The original container</returns>
+        [LibraryEntryPoint]
+        DiContainer ToCustomResolver<TImpl>(IResolver customResolver) where TImpl : <#=joinedInterfaces#>;
+    }
+<#
+    }
+#>
+}

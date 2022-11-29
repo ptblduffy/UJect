@@ -20,9 +20,16 @@ namespace UJect.Resolvers
         public override IResolvedInstance<TImpl> ResolveTypedInstance() => resolvedInstance;
     }
 
+    /// <summary>
+    /// Resolves by getting a new instance if one has already been created, or creating a new one.
+    /// Useful for resolving the same instance for multiple interface bindings
+    /// </summary>
+    /// <typeparam name="TImpl"></typeparam>
     internal class NewInstanceResolver<TImpl> : ResolverBase<TImpl>
     {
         private readonly DiContainer diContainer;
+        private PocoResolvedInstance<TImpl> resolvedNewInstance;
+        private bool hasResolved;
 
         public NewInstanceResolver(DiContainer diContainer)
         {
@@ -31,12 +38,21 @@ namespace UJect.Resolvers
 
         public override IResolvedInstance<TImpl> ResolveTypedInstance()
         {
-            var injector = InjectorCache.GetOrCreateInjector(typeof(TImpl));
-            var newInstance = injector.CreateInstance<TImpl>(diContainer);
-            return new PocoResolvedInstance<TImpl>(newInstance);
+            if (!hasResolved)
+            {
+                hasResolved = true;
+                var injector = InjectorCache.GetOrCreateInjector(typeof(TImpl));
+                var instanceObject = injector.CreateInstance<TImpl>(diContainer);
+                resolvedNewInstance = new PocoResolvedInstance<TImpl>(instanceObject);
+            }
+            return resolvedNewInstance;
         }
     }
 
+    /// <summary>
+    /// Resolve an instance via a Func
+    /// </summary>
+    /// <typeparam name="TImpl"></typeparam>
     internal class FunctionInstanceResolver<TImpl> : ResolverBase<TImpl>
     {
         private readonly Func<TImpl> resolve;

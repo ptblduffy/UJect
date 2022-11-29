@@ -11,11 +11,38 @@ namespace UJect
         #region Public Binding Interface
 
         [LibraryEntryPoint]
-        public IDiBinder<TInterface> Bind<TInterface>()
+        public IDiBinder<TInterface1> Bind<TInterface1>()
         {
             RuntimeAssert.AssertIsFalse(isDisposed, "You should not try to bind to a disposed container!");
+            return new DiBinder<TInterface1>(this);
+        }
 
-            return new DiBinder<TInterface>(this);
+        [LibraryEntryPoint]
+        public IDiBinder<TInterface1, TInterface2> Bind<TInterface1, TInterface2>()
+        {
+            RuntimeAssert.AssertIsFalse(isDisposed, "You should not try to bind to a disposed container!");
+            return new DiBinder<TInterface1, TInterface2>(this);
+        }
+
+        [LibraryEntryPoint]
+        public IDiBinder<TInterface1, TInterface2, TInterface3> Bind<TInterface1, TInterface2, TInterface3>()
+        {
+            RuntimeAssert.AssertIsFalse(isDisposed, "You should not try to bind to a disposed container!");
+            return new DiBinder<TInterface1, TInterface2, TInterface3>(this);
+        }
+
+        [LibraryEntryPoint]
+        public IDiBinder<TInterface1, TInterface2, TInterface3, TInterface4> Bind<TInterface1, TInterface2, TInterface3, TInterface4>()
+        {
+            RuntimeAssert.AssertIsFalse(isDisposed, "You should not try to bind to a disposed container!");
+            return new DiBinder<TInterface1, TInterface2, TInterface3, TInterface4>(this);
+        }
+
+        [LibraryEntryPoint]
+        public IDiBinder<TInterface1, TInterface2, TInterface3, TInterface4, TInterface5> Bind<TInterface1, TInterface2, TInterface3, TInterface4, TInterface5>()
+        {
+            RuntimeAssert.AssertIsFalse(isDisposed, "You should not try to bind to a disposed container!");
+            return new DiBinder<TInterface1, TInterface2, TInterface3, TInterface4, TInterface5>(this);
         }
 
         [LibraryEntryPoint]
