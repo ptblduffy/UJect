@@ -1,19 +1,10 @@
 ﻿using System;
 using UJect.Utilities;
-using Object = UnityEngine.Object;
 
 namespace UJect.Assertions
 {
-    public static class RuntimeAssert
+    internal static class RuntimeAssert
     {
-        public static void AssertIsTrue(bool condition, string message)
-        {
-            if (!condition)
-            {
-                throw new InvalidOperationException(message);
-            }
-        }
-
         public static void AssertIsFalse(bool condition, string message)
         {
             if (condition)
@@ -21,20 +12,28 @@ namespace UJect.Assertions
                 throw new InvalidOperationException(message);
             }
         }
-
-        public static void AssertObjectIsAlive(object obj, string message)
+        
+        public static void AssertNotNull<T>(T obj, string message) where T : class
         {
-            if (LifetimeCheck.IsNullOrDestroyed(obj))
+            if (obj == null)
             {
                 throw new InvalidOperationException(message);
             }
         }
 
-        public static void AssertObjectIsAlive(object obj, string message, object arg)
+        public static void AssertNotNullFormat<T, TArg1, TArg2>(T obj, string messageFormat, TArg1 messageArg1, TArg2 messageArg2) where T : class
+        {
+            if (obj == null)
+            {
+                throw new InvalidOperationException(string.Format(messageFormat, messageArg1, messageArg2));
+            }
+        }
+
+        public static void AssertObjectIsAliveFormat<TArg>(IResolvedInstance obj, string messageFormat, TArg messageArg)
         {
             if (LifetimeCheck.IsNullOrDestroyed(obj))
             {
-                throw new InvalidOperationException(string.Format(message, arg));
+                throw new InvalidOperationException(string.Format(messageFormat, messageArg));
             }
         }
     }

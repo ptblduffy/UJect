@@ -5,19 +5,15 @@ using UJect.Injection;
 
 namespace UJect
 {
-    public class DependencyTree
+    internal class DependencyTree
     {
         private readonly Dictionary<InjectionKey, DependencyNode> nodeLookup = new Dictionary<InjectionKey, DependencyNode>();
-        private readonly HashSet<DependencyNode>                    roots      = new HashSet<DependencyNode>();
+        private readonly HashSet<DependencyNode>                  roots      = new HashSet<DependencyNode>();
         private IEnumerable<DependencyNode> OrderedRoots => roots.OrderBy(n => n.InjectionKey);
 
         internal IEnumerable<InjectionKey> RootKeys => OrderedRoots.Select(dn=>dn.InjectionKey);
 
-
-
         private List<InjectionKey> cachedSortedList;
-
- 
 
         private DependencyNode GetOrCreateNode(InjectionKey key, out bool created)
         {
@@ -160,14 +156,14 @@ namespace UJect
                     stack.Push(new StackEntry {Node = next, IsParent = true});
                 }
 
-                foreach (var dOn in next.DependsOn.OrderBy(d=>d.InjectionKey))
+                foreach (var dOn in next.DependsOn.OrderBy(d => d.InjectionKey))
                 {
                     if (visited.Contains(dOn))
                     {
                         continue;
                     }
 
-                    stack.Push(new StackEntry {Node = dOn, IsParent = false});
+                    stack.Push(new StackEntry { Node = dOn, IsParent = false });
                 }
             }
 

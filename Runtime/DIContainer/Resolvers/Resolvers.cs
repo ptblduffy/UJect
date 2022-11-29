@@ -1,8 +1,6 @@
 ﻿using System;
 using UJect.Factories;
 using UJect.Injection;
-using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace UJect.Resolvers
 {
@@ -12,14 +10,14 @@ namespace UJect.Resolvers
     /// <typeparam name="TImpl"></typeparam>
     internal class InstanceResolver<TImpl> : ResolverBase<TImpl>
     {
-        private readonly TImpl instance;
+        private readonly IResolvedInstance<TImpl> resolvedInstance;
 
         public InstanceResolver(TImpl instance)
         {
-            this.instance = instance;
+            this.resolvedInstance = new PocoResolvedInstance<TImpl>(instance);
         }
 
-        public override TImpl ResolveTypedInstance() => instance;
+        public override IResolvedInstance<TImpl> ResolveTypedInstance() => resolvedInstance;
     }
 
     internal class NewInstanceResolver<TImpl> : ResolverBase<TImpl>
@@ -31,11 +29,11 @@ namespace UJect.Resolvers
             this.diContainer = diContainer;
         }
 
-        public override TImpl ResolveTypedInstance()
+        public override IResolvedInstance<TImpl> ResolveTypedInstance()
         {
             var injector = InjectorCache.GetOrCreateInjector(typeof(TImpl));
-            var instance = injector.CreateInstance<TImpl>(diContainer);
-            return instance;
+            var newInstance = injector.CreateInstance<TImpl>(diContainer);
+            return new PocoResolvedInstance<TImpl>(newInstance);
         }
     }
 
@@ -48,10 +46,10 @@ namespace UJect.Resolvers
             this.resolve = resolve;
         }
 
-        public override TImpl ResolveTypedInstance()
+        public override IResolvedInstance<TImpl> ResolveTypedInstance()
         {
             var newInstance = resolve.Invoke();
-            return newInstance;
+            return new PocoResolvedInstance<TImpl>(newInstance);
         }
     }
 
@@ -66,27 +64,11 @@ namespace UJect.Resolvers
             this.diContainer = diContainer;
         }
 
-        public override TImpl ResolveTypedInstance()
+        public override IResolvedInstance<TImpl> ResolveTypedInstance()
         {
             diContainer.InjectInto(factory);
             var newInstance = factory.CreateInstance();
-            return newInstance;
-        }
-    }
-
-    internal class ResourceInstanceResolver<TImpl> : ResolverBase<TImpl> where TImpl : Object
-    {
-        private readonly string resourcePath;
-
-        public ResourceInstanceResolver(string resourcePath)
-        {
-            this.resourcePath = resourcePath;
-        }
-
-        public override TImpl ResolveTypedInstance()
-        {
-            var loadedResource = Resources.Load<TImpl>(resourcePath);
-            return loadedResource;
+            return new PocoResolvedInstance<TImpl>(newInstance);
         }
     }
 }

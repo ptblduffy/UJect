@@ -1,17 +1,19 @@
 {
-    "name": "com.ebm.uject",
-    "displayName": "UJect",
-    "description": "Simple Unity Dependency Injection Library",
-    "documentationUrl": "https://github.com/ericmcduffee/UJect",
-    "version": "0.0.1",
-    "unity": "2019.2",
-    "author": {
-        "name": "Eric Bennett McDuffee",
-        "url": "https://github.com/ericmcduffee"
-    },
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/ericmcduffee/UJect.git"
-    },
-    "testables": ["UJect.Tests"]
+  "name": "com.ebm.uject",
+  "displayName": "UJect",
+  "description": "Simple Unity Dependency Injection Library",
+  "documentationUrl": "https://github.com/ericmcduffee/UJect",
+  "version": "0.1.0",
+  "unity": "2019.2",
+  "author": {
+    "name": "Eric Bennett McDuffee",
+    "url": "https://github.com/ericmcduffee"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ericmcduffee/UJect.git"
+  },
+  "testables": [
+    "UJect.Tests"
+  ]
 }

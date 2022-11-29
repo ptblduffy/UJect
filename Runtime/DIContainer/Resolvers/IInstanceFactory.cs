@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace UJect.Factories
+﻿namespace UJect.Factories
 {
     public interface IInstanceFactory<TImpl>
     {

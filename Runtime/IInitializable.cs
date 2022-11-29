@@ -1,7 +1,10 @@
-﻿namespace UJect
+﻿using Uject.Utilities;
+
+namespace UJect
 {
     public interface IInitializable
     {
-        void Initialize();
+        [LibraryEntryPoint]
+        void Initialize(DiContainer diContainer);
     }
 }

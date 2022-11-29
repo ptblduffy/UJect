@@ -2,11 +2,14 @@
 using UJect.Factories;
 using UJect.Resolvers;
 using Uject.Utilities;
-using Object = UnityEngine.Object;
 
 namespace UJect
 {
-    public interface IDiBinder<in TInterface>
+    public interface IDiBinder
+    {
+    }
+    
+    public interface IDiBinder<in TInterface> : IDiBinder
     {
         /// <summary>
         /// Bind the type resource with the custom ID provided. This allows disambiguating multiple resources of the same type
@@ -53,25 +56,16 @@ namespace UJect
         DiContainer ToFactory<TImpl>(IInstanceFactory<TImpl> factoryImpl) where TImpl : TInterface;
 
         /// <summary>
-        /// Bind the given type to a Unity resource at the provided path. That resource will be loaded via Resource.Load&lt;TImpl&gt;(resourcePath);
-        /// </summary>
-        /// <param name="resourcePath"></param>
-        /// <typeparam name="TImpl"></typeparam>
-        /// <returns>The original container</returns>
-        [LibraryEntryPoint]
-        DiContainer ToResource<TImpl>(string resourcePath) where TImpl : Object, TInterface;
-
-        /// <summary>
         /// Bind the given type to a custom resolver.
         /// </summary>
         /// <param name="customResolver"></param>
         /// <typeparam name="TImpl"></typeparam>
         /// <returns>The original container</returns>
         [LibraryEntryPoint]
-        DiContainer ToCustomResolver<TImpl>(IResolver<TImpl> customResolver) where TImpl : TInterface;
+        DiContainer ToCustomResolver<TImpl>(IResolver customResolver) where TImpl : TInterface;
     }
 
-    internal class DiBinder<TInterface> : IDiBinder<TInterface>
+    public class DiBinder<TInterface> : IDiBinder<TInterface>
     {
         private readonly DiContainer dependencies;
 
@@ -150,27 +144,13 @@ namespace UJect
         }
 
         /// <summary>
-        /// Bind the given type to a Unity resource at the provided path. That resource will be loaded via Resource.Load<TImpl>(resourcePath);
-        /// </summary>
-        /// <param name="resourcePath"></param>
-        /// <typeparam name="TImpl"></typeparam>
-        /// <returns>The original container</returns>
-        [LibraryEntryPoint]
-        public DiContainer ToResource<TImpl>(string resourcePath) where TImpl : Object, TInterface
-        {
-            var resolver = new ResourceInstanceResolver<TImpl>(resourcePath);
-            dependencies.InstallBindingInternal<TInterface, TImpl>(customId, resolver);
-            return dependencies;
-        }
-
-        /// <summary>
         /// Bind the given type to a custom resolver.
         /// </summary>
         /// <param name="customResolver"></param>
         /// <typeparam name="TImpl"></typeparam>
         /// <returns>The original container</returns>
         [LibraryEntryPoint]
-        public DiContainer ToCustomResolver<TImpl>(IResolver<TImpl> customResolver) where TImpl : TInterface
+        public DiContainer ToCustomResolver<TImpl>(IResolver customResolver) where TImpl : TInterface
         {
             dependencies.InstallBindingInternal<TInterface, TImpl>(customId, customResolver);
             return dependencies;
