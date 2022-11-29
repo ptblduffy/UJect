@@ -3,7 +3,7 @@
   "displayName": "UJect",
   "description": "Simple Unity Dependency Injection Library",
   "documentationUrl": "https://github.com/ericmcduffee/UJect",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "unity": "2019.2",
   "author": {
     "name": "Eric Bennett McDuffee",
