@@ -2,7 +2,7 @@
 using JetBrains.Annotations;
 using UJect.Assertions;
 using UJect.Injection;
-using Uject.Utilities;
+using UJect.Utilities;
 
 namespace UJect
 {
