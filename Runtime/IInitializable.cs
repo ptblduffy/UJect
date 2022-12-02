@@ -1,4 +1,4 @@
-﻿using Uject.Utilities;
+﻿using UJect.Utilities;
 
 namespace UJect
 {

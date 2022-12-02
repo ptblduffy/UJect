@@ -1,7 +1,7 @@
 ﻿using System;
 using JetBrains.Annotations;
 using UJect.Assertions;
-using Uject.Utilities;
+using UJect.Utilities;
 
 namespace UJect
 {

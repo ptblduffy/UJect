@@ -2,12 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
-using UJect.Assertions;
 using UJect.Exceptions;
-using UJect.Factories;
-using UJect.Injection;
 using UJect.Resolvers;
-using Uject.Utilities;
 using UJect.Utilities;
 using static UJect.Assertions.RuntimeAssert;
 
@@ -23,7 +19,7 @@ namespace UJect
 
         private DiPhase phase;
         private bool    isDisposed;
-        
+
         private DiPhase Phase
         {
             get => phase;
@@ -34,12 +30,12 @@ namespace UJect
         /// Name of DiContainer.
         /// </summary>
         public string ContainerName => containerName;
-        
+
         /// <summary>
         /// Create a new DiContainer with an empty name
         /// </summary>
         public DiContainer() : this(null, null){}
-        
+
         /// <summary>
         /// Create a new DiContainer with the provided name
         /// </summary>
@@ -58,7 +54,7 @@ namespace UJect
             Phase                = DiPhase.Bind;
             BindInstance(this);
         }
-        
+
         public void Dispose()
         {
             if (isDisposed)
@@ -69,7 +65,7 @@ namespace UJect
             isDisposed = true;
             foreach (var resolvedInstance in resolvedInstances.Values)
             {
-                if (!LifetimeCheck.IsNullOrDestroyed(resolvedInstance) && (resolvedInstance is IDisposable disposable))
+                if (!LifetimeCheck.IsNullOrDestroyed(resolvedInstance) && (resolvedInstance.InstanceObject is IDisposable disposable))
                 {
                     disposable.Dispose();
                 }
@@ -82,7 +78,7 @@ namespace UJect
                     disposable.Dispose();
                 }
             }
-            
+
             resolvedInstances.Clear();
             dependencyResolvers.Clear();
         }
@@ -127,7 +123,7 @@ namespace UJect
                 throw new CyclicDependencyException($"Adding dependency binding for {depends} to {dependency} resulted in a dependency cycle!\n{onDependency}");
             }
         }
-        
+
         #endregion Internal Binding Methods
 
         #region Resolving Instances
@@ -170,7 +166,7 @@ namespace UJect
                 }
             }
         }
-        
+
         /// <summary>
         ///     Resolve a specific dependency instance. The instance will have its dependencies injected
         /// </summary>

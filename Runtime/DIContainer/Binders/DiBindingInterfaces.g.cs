@@ -1,7 +1,7 @@
 ﻿using System;
 using UJect.Factories;
 using UJect.Resolvers;
-using Uject.Utilities;
+using UJect.Utilities;
 
 namespace UJect
 {
@@ -15,7 +15,7 @@ namespace UJect
         /// <returns>The same binder</returns>
         [LibraryEntryPoint]
         IDiBinder<TInterface1> WithId(string id);
-        
+
         /// <summary>
         /// Bind the given type to a provided concrete implementation instance of that type.
         /// </summary>
@@ -24,7 +24,7 @@ namespace UJect
         /// <returns>The original container</returns>
         [LibraryEntryPoint]
         DiContainer ToInstance<TImpl>(TImpl instance) where TImpl : TInterface1;
-        
+
         /// <summary>
         /// Bind the given type to a new instance of the provided concrete implementation of that type.
         /// </summary>
@@ -32,7 +32,7 @@ namespace UJect
         /// <returns>The original container</returns>
         [LibraryEntryPoint]
         DiContainer ToNewInstance<TImpl>() where TImpl : TInterface1;
-        
+
         /// <summary>
         /// Bind the given type to a function that will provide a concrete instance of that type
         /// </summary>
@@ -40,7 +40,7 @@ namespace UJect
         /// <returns>The original container</returns>
         [LibraryEntryPoint]
         DiContainer ToFactoryMethod<TImpl>(Func<TImpl> factoryMethod) where TImpl : TInterface1;
-        
+
         /// <summary>
         /// Bind the given type to a factory implementation that will provide a concrete instance of that type.
         /// Factories can be injected into before resolution, making them useful when you want to use a bunch of injected resources to
@@ -71,7 +71,7 @@ namespace UJect
         /// <returns>The same binder</returns>
         [LibraryEntryPoint]
         IDiBinder<TInterface1, TInterface2> WithId(string id);
-        
+
         /// <summary>
         /// Bind the given type to a provided concrete implementation instance of that type.
         /// </summary>
@@ -80,7 +80,7 @@ namespace UJect
         /// <returns>The original container</returns>
         [LibraryEntryPoint]
         DiContainer ToInstance<TImpl>(TImpl instance) where TImpl : TInterface1, TInterface2;
-        
+
         /// <summary>
         /// Bind the given type to a new instance of the provided concrete implementation of that type.
         /// </summary>
@@ -88,7 +88,7 @@ namespace UJect
         /// <returns>The original container</returns>
         [LibraryEntryPoint]
         DiContainer ToNewInstance<TImpl>() where TImpl : TInterface1, TInterface2;
-        
+
         /// <summary>
         /// Bind the given type to a function that will provide a concrete instance of that type
         /// </summary>
@@ -96,7 +96,7 @@ namespace UJect
         /// <returns>The original container</returns>
         [LibraryEntryPoint]
         DiContainer ToFactoryMethod<TImpl>(Func<TImpl> factoryMethod) where TImpl : TInterface1, TInterface2;
-        
+
         /// <summary>
         /// Bind the given type to a factory implementation that will provide a concrete instance of that type.
         /// Factories can be injected into before resolution, making them useful when you want to use a bunch of injected resources to
@@ -127,7 +127,7 @@ namespace UJect
         /// <returns>The same binder</returns>
         [LibraryEntryPoint]
         IDiBinder<TInterface1, TInterface2, TInterface3> WithId(string id);
-        
+
         /// <summary>
         /// Bind the given type to a provided concrete implementation instance of that type.
         /// </summary>
@@ -136,7 +136,7 @@ namespace UJect
         /// <returns>The original container</returns>
         [LibraryEntryPoint]
         DiContainer ToInstance<TImpl>(TImpl instance) where TImpl : TInterface1, TInterface2, TInterface3;
-        
+
         /// <summary>
         /// Bind the given type to a new instance of the provided concrete implementation of that type.
         /// </summary>
@@ -144,7 +144,7 @@ namespace UJect
         /// <returns>The original container</returns>
         [LibraryEntryPoint]
         DiContainer ToNewInstance<TImpl>() where TImpl : TInterface1, TInterface2, TInterface3;
-        
+
         /// <summary>
         /// Bind the given type to a function that will provide a concrete instance of that type
         /// </summary>
@@ -152,7 +152,7 @@ namespace UJect
         /// <returns>The original container</returns>
         [LibraryEntryPoint]
         DiContainer ToFactoryMethod<TImpl>(Func<TImpl> factoryMethod) where TImpl : TInterface1, TInterface2, TInterface3;
-        
+
         /// <summary>
         /// Bind the given type to a factory implementation that will provide a concrete instance of that type.
         /// Factories can be injected into before resolution, making them useful when you want to use a bunch of injected resources to
@@ -183,7 +183,7 @@ namespace UJect
         /// <returns>The same binder</returns>
         [LibraryEntryPoint]
         IDiBinder<TInterface1, TInterface2, TInterface3, TInterface4> WithId(string id);
-        
+
         /// <summary>
         /// Bind the given type to a provided concrete implementation instance of that type.
         /// </summary>
@@ -192,7 +192,7 @@ namespace UJect
         /// <returns>The original container</returns>
         [LibraryEntryPoint]
         DiContainer ToInstance<TImpl>(TImpl instance) where TImpl : TInterface1, TInterface2, TInterface3, TInterface4;
-        
+
         /// <summary>
         /// Bind the given type to a new instance of the provided concrete implementation of that type.
         /// </summary>
@@ -200,7 +200,7 @@ namespace UJect
         /// <returns>The original container</returns>
         [LibraryEntryPoint]
         DiContainer ToNewInstance<TImpl>() where TImpl : TInterface1, TInterface2, TInterface3, TInterface4;
-        
+
         /// <summary>
         /// Bind the given type to a function that will provide a concrete instance of that type
         /// </summary>
@@ -208,7 +208,7 @@ namespace UJect
         /// <returns>The original container</returns>
         [LibraryEntryPoint]
         DiContainer ToFactoryMethod<TImpl>(Func<TImpl> factoryMethod) where TImpl : TInterface1, TInterface2, TInterface3, TInterface4;
-        
+
         /// <summary>
         /// Bind the given type to a factory implementation that will provide a concrete instance of that type.
         /// Factories can be injected into before resolution, making them useful when you want to use a bunch of injected resources to
@@ -239,7 +239,7 @@ namespace UJect
         /// <returns>The same binder</returns>
         [LibraryEntryPoint]
         IDiBinder<TInterface1, TInterface2, TInterface3, TInterface4, TInterface5> WithId(string id);
-        
+
         /// <summary>
         /// Bind the given type to a provided concrete implementation instance of that type.
         /// </summary>
@@ -248,7 +248,7 @@ namespace UJect
         /// <returns>The original container</returns>
         [LibraryEntryPoint]
         DiContainer ToInstance<TImpl>(TImpl instance) where TImpl : TInterface1, TInterface2, TInterface3, TInterface4, TInterface5;
-        
+
         /// <summary>
         /// Bind the given type to a new instance of the provided concrete implementation of that type.
         /// </summary>
@@ -256,7 +256,7 @@ namespace UJect
         /// <returns>The original container</returns>
         [LibraryEntryPoint]
         DiContainer ToNewInstance<TImpl>() where TImpl : TInterface1, TInterface2, TInterface3, TInterface4, TInterface5;
-        
+
         /// <summary>
         /// Bind the given type to a function that will provide a concrete instance of that type
         /// </summary>
@@ -264,7 +264,7 @@ namespace UJect
         /// <returns>The original container</returns>
         [LibraryEntryPoint]
         DiContainer ToFactoryMethod<TImpl>(Func<TImpl> factoryMethod) where TImpl : TInterface1, TInterface2, TInterface3, TInterface4, TInterface5;
-        
+
         /// <summary>
         /// Bind the given type to a factory implementation that will provide a concrete instance of that type.
         /// Factories can be injected into before resolution, making them useful when you want to use a bunch of injected resources to

@@ -2,7 +2,7 @@
 using UJect.Exceptions;
 using UJect.Factories;
 using UJect.Resolvers;
-using Uject.Utilities;
+using UJect.Utilities;
 
 namespace UJect
 {
