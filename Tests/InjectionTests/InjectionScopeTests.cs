@@ -7,6 +7,12 @@ namespace UJect.Tests.InjectionTests
     public class InjectionScopeTests
     {
         
+        [SetUp]
+        public void SetUp()
+        {
+            InjectorCache.ClearCache();
+        }
+        
         [Test]
         public void TestInjectorContainsAllInjectableFields()
         {

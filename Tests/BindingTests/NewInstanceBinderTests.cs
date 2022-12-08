@@ -1,5 +1,4 @@
 ﻿using NUnit.Framework;
-using UJect;
 using UJect.Injection;
 
 namespace UJect.Tests
@@ -10,6 +9,8 @@ namespace UJect.Tests
         [Test]
         public void TestBindAcyclicGraph()
         {
+            InjectorCache.ClearCache();
+
             var container = new DiContainer();
             container.Bind<IInterface1>().ToNewInstance<Impl1>();
             container.TryResolveAll();
