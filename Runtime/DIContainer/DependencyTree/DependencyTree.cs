@@ -7,8 +7,8 @@ namespace UJect
 {
     internal class DependencyTree
     {
-        private readonly Dictionary<InjectionKey, DependencyNode> nodeLookup = new Dictionary<InjectionKey, DependencyNode>();
-        private readonly HashSet<DependencyNode>                  roots      = new HashSet<DependencyNode>();
+        private readonly Dictionary<InjectionKey, DependencyNode> nodeLookup = new();
+        private readonly HashSet<DependencyNode>                  roots      = new();
         private IEnumerable<DependencyNode> OrderedRoots => roots.OrderBy(n => n.InjectionKey);
 
         internal IEnumerable<InjectionKey> RootKeys => OrderedRoots.Select(dn=>dn.InjectionKey);
@@ -184,7 +184,7 @@ namespace UJect
                 InjectionKey = injectionKey;
             }
 
-            internal HashSet<DependencyNode> DependsOn { get; } = new HashSet<DependencyNode>();
+            internal HashSet<DependencyNode> DependsOn { get; } = new();
 
             public void AddDependsOn(DependencyNode node)
             {

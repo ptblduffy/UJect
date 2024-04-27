@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using NUnit.Framework;
 using UJect.Injection;
-using UnityEngine;
 
 namespace UJect.Tests
 {

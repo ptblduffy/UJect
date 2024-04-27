@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
+
 using UJect.Exceptions;
 using UJect.Resolvers;
 using UJect.Utilities;
@@ -11,9 +11,9 @@ namespace UJect
 {
     public sealed partial class DiContainer : IDisposable
     {
-        private readonly Dictionary<InjectionKey, IResolvedInstance> resolvedInstances   = new Dictionary<InjectionKey, IResolvedInstance>();
-        private readonly Dictionary<InjectionKey, IResolver>         dependencyResolvers = new Dictionary<InjectionKey, IResolver>();
-        private readonly DependencyTree                              dependencyTree      = new DependencyTree();
+        private readonly Dictionary<InjectionKey, IResolvedInstance> resolvedInstances   = new();
+        private readonly Dictionary<InjectionKey, IResolver>         dependencyResolvers = new();
+        private readonly DependencyTree                              dependencyTree      = new();
         private readonly DiContainer                                 parentContainer;
         private readonly string                                      containerName;
 
@@ -89,7 +89,6 @@ namespace UJect
         /// <param name="childContainerName"></param>
         /// <returns></returns>
         [LibraryEntryPoint]
-        [NotNull]
         public DiContainer CreateChildContainer(string childContainerName = null)
         {
             return new DiContainer(this, childContainerName);

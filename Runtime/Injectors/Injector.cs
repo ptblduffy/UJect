@@ -11,9 +11,9 @@ namespace UJect.Injection
         private static readonly Type         injectAttributeType      = typeof(InjectAttribute);
         private const           BindingFlags INJECTABLE_BINDING_FLAGS = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
 
-        private readonly HashSet<InjectionKey>       dependsOn              = new HashSet<InjectionKey>();
-        private readonly List<InjectableConstructor> injectableConstructors = new List<InjectableConstructor>();
-        private readonly List<InjectableField>       injectableFields       = new List<InjectableField>();
+        private readonly HashSet<InjectionKey>       dependsOn              = new();
+        private readonly List<InjectableConstructor> injectableConstructors = new();
+        private readonly List<InjectableField>       injectableFields       = new();
         private readonly Type                        referencedType;
 
         public IReadOnlyList<InjectableConstructor> InjectableConstructors => injectableConstructors;
