@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+// Copyright (c) 2024 Eric Bennett McDuffee
+
+using System.Collections.Generic;
 using System.Linq;
 using UJect.Exceptions;
 using UJect.Injection;

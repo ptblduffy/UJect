@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2024 Eric Bennett McDuffee
+// Copyright (c) 2024 Eric Bennett McDuffee
 
 using System;
 using NUnit.Framework;

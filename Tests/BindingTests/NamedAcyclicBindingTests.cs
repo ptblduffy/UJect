@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+// Copyright (c) 2024 Eric Bennett McDuffee
+using System.Runtime.InteropServices;
 using NUnit.Framework;
 using UJect.Injection;
 

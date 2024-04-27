@@ -1,4 +1,5 @@
-﻿namespace UJect.UnityExtensions
+// Copyright (c) 2024 Eric Bennett McDuffee
+namespace UJect.UnityExtensions
 {
     public static class UnityBinderExtensions
     {
