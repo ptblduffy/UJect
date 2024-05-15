@@ -1,4 +1,5 @@
-﻿using System.Linq;
+// Copyright (c) 2024 Eric Bennett McDuffee
+using System.Linq;
 using NUnit.Framework;
 using UJect.Injection;
 

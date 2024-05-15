@@ -1,5 +1,6 @@
-﻿using System;
-using JetBrains.Annotations;
+// Copyright (c) 2024 Eric Bennett McDuffee
+using System;
+
 using UJect.Assertions;
 using UJect.Injection;
 using UJect.Utilities;
@@ -14,14 +15,12 @@ namespace UJect
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         [LibraryEntryPoint]
-        [NotNull]
         public T CreateInjectedInstance<T>() => (T)CreateInjectedInstance(typeof(T));
 
         /// <summary>
         /// Create an instance of type instanceType, with all constructor params and fields injected
         /// </summary>
         [LibraryEntryPoint]
-        [NotNull]
         public object CreateInjectedInstance(Type instanceType)
         {
             var injector = InjectorCache.GetOrCreateInjector(instanceType);

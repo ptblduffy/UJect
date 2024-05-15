@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+// Copyright (c) 2024 Eric Bennett McDuffee
+using NUnit.Framework;
 using UJect;
 using UJect.Injection;
 

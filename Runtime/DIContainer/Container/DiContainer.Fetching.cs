@@ -1,5 +1,6 @@
-﻿using System;
-using JetBrains.Annotations;
+// Copyright (c) 2024 Eric Bennett McDuffee
+using System;
+
 using UJect.Assertions;
 using UJect.Utilities;
 
@@ -15,7 +16,6 @@ namespace UJect
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
         [LibraryEntryPoint]
-        [NotNull]
         public TInterface Get<TInterface>(string customId = null) where TInterface : class
         {
             RuntimeAssert.AssertIsFalse(isDisposed, "You should not try to retrieve bindings from a disposed container!");
@@ -36,7 +36,7 @@ namespace UJect
         /// <param name="dependency">The returned dependency</param>
         /// <returns>True if dependency is bound, false otherwise</returns>
         [LibraryEntryPoint]
-        public bool TryGet<TInterface>([NotNull] out TInterface dependency) where TInterface : class
+        public bool TryGet<TInterface>(out TInterface dependency) where TInterface : class
         {
             return TryGet(null, out dependency);
         }
@@ -48,7 +48,7 @@ namespace UJect
         /// <param name="dependency">The returned dependency</param>
         /// <returns>True if dependency is bound, false otherwise</returns>
         [LibraryEntryPoint]
-        public bool TryGet<TType>(string customId, [NotNull] out TType dependency)
+        public bool TryGet<TType>(string customId, out TType dependency)
         {
             var key = new InjectionKey(typeof(TType), customId);
             return TryGetDependencyInternal(key, out dependency);

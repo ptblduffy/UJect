@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+// Copyright (c) 2024 Eric Bennett McDuffee
+using UnityEngine;
 
 namespace UJect.UnityExtensions
 {
