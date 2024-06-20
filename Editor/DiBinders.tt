@@ -2,10 +2,12 @@
 <#@ assembly name="System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" #>
 <#@ import namespace="System.Linq" #>
 <#@ output extension="g.cs"#>
+// Copyright (c) <#=DateTime.Now.ToString("yyyy")#> Eric Bennett McDuffee
+
 using System;
 using UJect.Factories;
 using UJect.Resolvers;
-using Uject.Utilities;
+using UJect.Utilities;
 
 namespace UJect
 {
@@ -17,7 +19,7 @@ namespace UJect
     
     void GenerateBinder(int numInterfaces)
     {
-        var interfaceNames = Enumerable.Range(0, numInterfaces).Select(i => $"TInterface{i + 1}");
+        var interfaceNames = Enumerable.Range(0, numInterfaces).Select(i => $"TInterface{i + 1}").ToList();
         var joinedInterfaces = string.Join(", ", interfaceNames);
 
         var interfaceType = $"IDiBinder<{joinedInterfaces}>";
@@ -112,10 +114,28 @@ namespace UJect
         public DiContainer ToFactory<TImpl>(IInstanceFactory<TImpl> factoryImpl) where TImpl :  <#=joinedInterfaces#>
         {
 <#
-        foreach (var interfaceName in interfaceNames)
+        if (interfaceNames.Count > 1)
         {
 #>
-            dependencies.InstallFactoryBinding<<#=interfaceName#>, TImpl>(customId, factoryImpl);
+            dependencies.InstallFactoryMultiBind(
+                customId,
+                factoryImpl,
+<#
+            for (var i = 0; i < interfaceNames.Count; i++)
+            {
+                var interfaceName = interfaceNames[i];
+                #>
+                InjectionKey.Of<<#=interfaceName#>>(customId)<#=(i<interfaceNames.Count-1 ? "," : "")#>
+<#
+            }
+#>
+            );
+<#
+        }
+        else
+        {
+#>
+                        dependencies.InstallFactoryBinding<<#=joinedInterfaces#>, TImpl>(customId, factoryImpl);
 <#
         }
 #>
@@ -125,10 +145,28 @@ namespace UJect
         private void InstallBindings<TImpl>(IResolver resolver) where TImpl :  <#=joinedInterfaces#>
         {
 <#
-        foreach (var interfaceName in interfaceNames)
+        if (interfaceNames.Count > 1)
         {
 #>
-            dependencies.InstallBindingInternal<<#=interfaceName#>, TImpl>(customId, resolver);
+            dependencies.InstallMultiBinding(
+                InjectionKey.Of<TImpl>(),
+                resolver,
+<#
+            for (var i = 0; i < interfaceNames.Count; i++)
+            {
+                var interfaceName = interfaceNames[i];
+                #>
+                InjectionKey.Of<<#=interfaceName#>>(customId)<#=(i<interfaceNames.Count-1 ? "," : "")#>
+<#
+            }
+#>
+            );
+<#
+        }
+        else
+        {
+#>
+                        dependencies.InstallBinding<<#=joinedInterfaces#>, TImpl>(customId, resolver);
 <#
         }
 #>
