@@ -12,10 +12,11 @@ namespace UJect
 {
     public sealed partial class DiContainer : IDisposable
     {
-        private readonly Dictionary<InjectionKey, IResolvedInstance> resolvedInstances   = new();
-        private readonly Dictionary<InjectionKey, IResolver>         dependencyResolvers = new();
-        private readonly DependencyTree                              dependencyTree      = new();
-        private readonly DiContainer                                 parentContainer;
+        private readonly Dictionary<InjectionKey, IResolvedInstance> resolvedInstances = new();
+        private readonly Dictionary<InjectionKey, IResolver> dependencyResolvers = new();
+        private readonly Dictionary<IResolver, InjectionKey[]> allKeyLookup = new();
+        private readonly DependencyTree dependencyTree = new();
+        private readonly DiContainer parentContainer;
         private readonly string                                      containerName;
 
         private DiPhase phase;
@@ -177,7 +178,18 @@ namespace UJect
             var resolvedInstance = resolver.Resolve();
             AssertObjectIsAliveFormat(resolvedInstance, "Cannot inject into dead resolved instance for key {0}", injectionKey);
             InjectInto(resolvedInstance.InstanceObject);
-            resolvedInstances.Add(injectionKey, resolvedInstance);
+
+            if (allKeyLookup.TryGetValue(resolver, out var allKeys))
+            {
+                foreach (var resolvedKey in allKeys)
+                {            
+                    resolvedInstances.Add(resolvedKey, resolvedInstance);
+                }
+            }
+            else
+            {
+                resolvedInstances.Add(injectionKey, resolvedInstance);
+            }
         }
 
         #endregion Resolving Instances

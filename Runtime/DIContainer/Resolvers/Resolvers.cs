@@ -30,7 +30,6 @@ namespace UJect.Resolvers
     {
         private readonly DiContainer diContainer;
         private PocoResolvedInstance<TImpl> resolvedNewInstance;
-        private bool hasResolved;
 
         public NewInstanceResolver(DiContainer diContainer)
         {
@@ -39,13 +38,9 @@ namespace UJect.Resolvers
 
         public override IResolvedInstance<TImpl> ResolveTypedInstance()
         {
-            if (!hasResolved)
-            {
-                hasResolved = true;
-                var injector = InjectorCache.GetOrCreateInjector(typeof(TImpl));
-                var instanceObject = injector.CreateInstance<TImpl>(diContainer);
-                resolvedNewInstance = new PocoResolvedInstance<TImpl>(instanceObject);
-            }
+            var injector = InjectorCache.GetOrCreateInjector(typeof(TImpl));
+            var instanceObject = injector.CreateInstance<TImpl>(diContainer);
+            resolvedNewInstance = new PocoResolvedInstance<TImpl>(instanceObject);
             return resolvedNewInstance;
         }
     }

@@ -1,0 +1,119 @@
+﻿<#@ template language="C#" #>
+<#@ assembly name="System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" #>
+<#@ import namespace="System.Linq" #>
+<#@ output extension="g.cs"#>
+// Copyright (c) <#=DateTime.Now.ToString("yyyy")#> Eric Bennett McDuffee
+
+using System;
+using System.Collections.Generic;
+using NUnit.Framework;
+using UJect.Exceptions;
+using UJect.Factories;
+using UJect.Injection;
+
+namespace UJect.Tests
+{
+    [TestFixture]
+    public partial class MultiBindTests
+    {
+
+
+<#
+    for (int i = 2; i <= 5; i++)
+    {
+        GenerateMultiBindTest(i);
+    }
+
+    void GenerateMultiBindTest(int numInterfaces)
+    {
+        var interfaceNums = Enumerable.Range(1, numInterfaces).ToList();
+        var interfaceNames = interfaceNums.Select(i => $"IInterface{i}").ToList();
+        var joinedInterfaces = string.Join(", ", interfaceNames);
+        var implName = $"Impl{string.Join("", interfaceNums)}";
+        var factoryName = $"{implName}Factory";
+
+
+#>
+        private static IEnumerable<Action<IDiBinder<<#= joinedInterfaces #>>>> BindMethods<#= interfaceNames.Count #>
+        {
+            get
+            {
+                yield return binder => binder.ToNewInstance<<#= implName #>>();
+                yield return binder => binder.ToFactoryMethod(()=>new <#= implName #>());
+                yield return binder => binder.ToFactory(new <#= factoryName #>());
+                yield return binder => binder.ToInstance(new <#= implName #>());
+            }
+        }
+
+        [Test]
+        [TestCaseSource(nameof(BindMethods<#= interfaceNames.Count #>))]
+        public void TestBindingMultipleInterfaces(Action<IDiBinder<<#= joinedInterfaces #>>> bindMethod)
+        {
+            var container = new DiContainer();
+
+            var binder = container.Bind<<#=joinedInterfaces#>>();
+            bindMethod(binder);
+            container.TryResolveAll();
+
+<#
+        for (var i = 0; i < interfaceNums.Count; i++)
+        {
+            var interfaceNum = interfaceNums[i];
+            var instanceName = $"instance{interfaceNum}";
+#>
+            // <#=interfaceNames[i]#>
+            var <#=instanceName#> = container.Get<<#=interfaceNames[i]#>>();
+            Assert.IsNotNull(<#=instanceName#>);
+            Assert.AreEqual(typeof(<#=implName#>), <#=instanceName#>.GetType());
+<#
+            if (i > 0)
+            {
+                var instanceNameMinus1 = $"instance{interfaceNums[i-1]}";
+#>
+            Assert.IsTrue(object.ReferenceEquals(<#=instanceNameMinus1#>, <#=instanceName#>), "Should be using the same reference");
+<#
+            }
+
+        }
+#>
+        }
+    
+<#
+    }
+#>
+
+<#
+    for (int i = 2; i <= 5; i++)
+    {
+        GenerateImpl(i);
+    }
+
+    void GenerateImpl(int numInterfaces)
+    {
+        var interfaceNums = Enumerable.Range(1, numInterfaces).ToList();
+        var interfaceNames = interfaceNums.Select(i => $"IInterface{i}").ToList();
+        var joinedInterfaces = string.Join(", ", interfaceNames);
+        var implName = $"Impl{string.Join("", interfaceNums)}";
+        var factoryName = $"{implName}Factory";
+#>
+
+    private class <#=implName#> : <#=joinedInterfaces#>
+    {
+    }
+    
+    private class <#=factoryName#> : IInstanceFactory<<#=implName#>>
+    {
+        public <#=implName#> CreateInstance() => new <#=implName#>();
+    }
+<#
+    }
+    for (int i = 1; i <= 5; i++)
+    {
+#>
+    public interface IInterface<#=i#> { }
+<#
+    }
+#>
+
+    }
+}

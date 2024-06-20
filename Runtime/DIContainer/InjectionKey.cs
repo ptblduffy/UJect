@@ -9,6 +9,8 @@ namespace UJect
         public readonly Type   InjectedResourceType;
         public readonly string InjectedResourceName;
 
+        public static InjectionKey Of<T>(string customId = null) => new InjectionKey(typeof(T), customId);
+
         public InjectionKey(Type injectedResourceType, string injectedResourceName = null)
         {
             InjectedResourceType      = injectedResourceType;

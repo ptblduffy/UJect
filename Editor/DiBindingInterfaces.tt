@@ -1,11 +1,11 @@
 ﻿<#@ template language="C#" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ output extension="g.cs"#>
-
+// Copyright (c) <#=DateTime.Now.Year.ToString()#> Eric Bennett McDuffee
 using System;
 using UJect.Factories;
 using UJect.Resolvers;
-using Uject.Utilities;
+using UJect.Utilities;
 
 namespace UJect
 {

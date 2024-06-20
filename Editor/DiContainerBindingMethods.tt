@@ -1,8 +1,9 @@
 ﻿<#@ template language="C#" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ output extension="g.cs"#>
+// Copyright (c) <#=DateTime.Now.Year.ToString()#> Eric Bennett McDuffee
 using UJect.Assertions;
-using Uject.Utilities;
+using UJect.Utilities;
 
 namespace UJect
 {

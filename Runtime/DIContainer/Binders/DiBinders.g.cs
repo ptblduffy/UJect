@@ -95,13 +95,13 @@ namespace UJect
         [LibraryEntryPoint]
         public DiContainer ToFactory<TImpl>(IInstanceFactory<TImpl> factoryImpl) where TImpl :  TInterface1
         {
-            dependencies.InstallFactoryBinding<TInterface1, TImpl>(customId, factoryImpl);
+                        dependencies.InstallFactoryBinding<TInterface1, TImpl>(customId, factoryImpl);
             return dependencies;
         }
 
         private void InstallBindings<TImpl>(IResolver resolver) where TImpl :  TInterface1
         {
-            dependencies.InstallBindingInternal<TInterface1, TImpl>(customId, resolver);
+                        dependencies.InstallBinding<TInterface1, TImpl>(customId, resolver);
         }
     }
 
@@ -192,18 +192,24 @@ namespace UJect
         [LibraryEntryPoint]
         public DiContainer ToFactory<TImpl>(IInstanceFactory<TImpl> factoryImpl) where TImpl :  TInterface1, TInterface2
         {
-            dependencies.InstallFactoryBinding<TInterface1, TImpl>(customId, factoryImpl);
-            dependencies.InstallFactoryBinding<TInterface2, TImpl>(customId, factoryImpl);
+            dependencies.InstallFactoryMultiBind(
+                customId,
+                factoryImpl,
+                InjectionKey.Of<TInterface1>(customId),
+                InjectionKey.Of<TInterface2>(customId)
+            );
             return dependencies;
         }
 
         private void InstallBindings<TImpl>(IResolver resolver) where TImpl :  TInterface1, TInterface2
         {
-            dependencies.InstallBindingInternal<TInterface1, TImpl>(customId, resolver);
-            dependencies.InstallBindingInternal<TInterface2, TImpl>(customId, resolver);
+            dependencies.InstallMultiBinding(
+                InjectionKey.Of<TImpl>(),
+                resolver,
+                InjectionKey.Of<TInterface1>(customId),
+                InjectionKey.Of<TInterface2>(customId)
+            );
         }
-
-
     }
 
     public class DiBinder<TInterface1, TInterface2, TInterface3> : IDiBinder<TInterface1, TInterface2, TInterface3>
@@ -293,20 +299,26 @@ namespace UJect
         [LibraryEntryPoint]
         public DiContainer ToFactory<TImpl>(IInstanceFactory<TImpl> factoryImpl) where TImpl :  TInterface1, TInterface2, TInterface3
         {
-            dependencies.InstallFactoryBinding<TInterface1, TImpl>(customId, factoryImpl);
-            dependencies.InstallFactoryBinding<TInterface2, TImpl>(customId, factoryImpl);
-            dependencies.InstallFactoryBinding<TInterface3, TImpl>(customId, factoryImpl);
+            dependencies.InstallFactoryMultiBind(
+                customId,
+                factoryImpl,
+                InjectionKey.Of<TInterface1>(customId),
+                InjectionKey.Of<TInterface2>(customId),
+                InjectionKey.Of<TInterface3>(customId)
+            );
             return dependencies;
         }
 
         private void InstallBindings<TImpl>(IResolver resolver) where TImpl :  TInterface1, TInterface2, TInterface3
         {
-            dependencies.InstallBindingInternal<TInterface1, TImpl>(customId, resolver);
-            dependencies.InstallBindingInternal<TInterface2, TImpl>(customId, resolver);
-            dependencies.InstallBindingInternal<TInterface3, TImpl>(customId, resolver);
+            dependencies.InstallMultiBinding(
+                InjectionKey.Of<TImpl>(),
+                resolver,
+                InjectionKey.Of<TInterface1>(customId),
+                InjectionKey.Of<TInterface2>(customId),
+                InjectionKey.Of<TInterface3>(customId)
+            );
         }
-
-
     }
 
     public class DiBinder<TInterface1, TInterface2, TInterface3, TInterface4> : IDiBinder<TInterface1, TInterface2, TInterface3, TInterface4>
@@ -396,22 +408,28 @@ namespace UJect
         [LibraryEntryPoint]
         public DiContainer ToFactory<TImpl>(IInstanceFactory<TImpl> factoryImpl) where TImpl :  TInterface1, TInterface2, TInterface3, TInterface4
         {
-            dependencies.InstallFactoryBinding<TInterface1, TImpl>(customId, factoryImpl);
-            dependencies.InstallFactoryBinding<TInterface2, TImpl>(customId, factoryImpl);
-            dependencies.InstallFactoryBinding<TInterface3, TImpl>(customId, factoryImpl);
-            dependencies.InstallFactoryBinding<TInterface4, TImpl>(customId, factoryImpl);
+            dependencies.InstallFactoryMultiBind(
+                customId,
+                factoryImpl,
+                InjectionKey.Of<TInterface1>(customId),
+                InjectionKey.Of<TInterface2>(customId),
+                InjectionKey.Of<TInterface3>(customId),
+                InjectionKey.Of<TInterface4>(customId)
+            );
             return dependencies;
         }
 
         private void InstallBindings<TImpl>(IResolver resolver) where TImpl :  TInterface1, TInterface2, TInterface3, TInterface4
         {
-            dependencies.InstallBindingInternal<TInterface1, TImpl>(customId, resolver);
-            dependencies.InstallBindingInternal<TInterface2, TImpl>(customId, resolver);
-            dependencies.InstallBindingInternal<TInterface3, TImpl>(customId, resolver);
-            dependencies.InstallBindingInternal<TInterface4, TImpl>(customId, resolver);
+            dependencies.InstallMultiBinding(
+                InjectionKey.Of<TImpl>(),
+                resolver,
+                InjectionKey.Of<TInterface1>(customId),
+                InjectionKey.Of<TInterface2>(customId),
+                InjectionKey.Of<TInterface3>(customId),
+                InjectionKey.Of<TInterface4>(customId)
+            );
         }
-
-
     }
 
     public class DiBinder<TInterface1, TInterface2, TInterface3, TInterface4, TInterface5> : IDiBinder<TInterface1, TInterface2, TInterface3, TInterface4, TInterface5>
@@ -501,23 +519,29 @@ namespace UJect
         [LibraryEntryPoint]
         public DiContainer ToFactory<TImpl>(IInstanceFactory<TImpl> factoryImpl) where TImpl :  TInterface1, TInterface2, TInterface3, TInterface4, TInterface5
         {
-            dependencies.InstallFactoryBinding<TInterface1, TImpl>(customId, factoryImpl);
-            dependencies.InstallFactoryBinding<TInterface2, TImpl>(customId, factoryImpl);
-            dependencies.InstallFactoryBinding<TInterface3, TImpl>(customId, factoryImpl);
-            dependencies.InstallFactoryBinding<TInterface4, TImpl>(customId, factoryImpl);
-            dependencies.InstallFactoryBinding<TInterface5, TImpl>(customId, factoryImpl);
+            dependencies.InstallFactoryMultiBind(
+                customId,
+                factoryImpl,
+                InjectionKey.Of<TInterface1>(customId),
+                InjectionKey.Of<TInterface2>(customId),
+                InjectionKey.Of<TInterface3>(customId),
+                InjectionKey.Of<TInterface4>(customId),
+                InjectionKey.Of<TInterface5>(customId)
+            );
             return dependencies;
         }
 
         private void InstallBindings<TImpl>(IResolver resolver) where TImpl :  TInterface1, TInterface2, TInterface3, TInterface4, TInterface5
         {
-            dependencies.InstallBindingInternal<TInterface1, TImpl>(customId, resolver);
-            dependencies.InstallBindingInternal<TInterface2, TImpl>(customId, resolver);
-            dependencies.InstallBindingInternal<TInterface3, TImpl>(customId, resolver);
-            dependencies.InstallBindingInternal<TInterface4, TImpl>(customId, resolver);
-            dependencies.InstallBindingInternal<TInterface5, TImpl>(customId, resolver);
+            dependencies.InstallMultiBinding(
+                InjectionKey.Of<TImpl>(),
+                resolver,
+                InjectionKey.Of<TInterface1>(customId),
+                InjectionKey.Of<TInterface2>(customId),
+                InjectionKey.Of<TInterface3>(customId),
+                InjectionKey.Of<TInterface4>(customId),
+                InjectionKey.Of<TInterface5>(customId)
+            );
         }
-
-
     }
 }
